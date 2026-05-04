@@ -1,0 +1,16 @@
+services:
+  labora-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: labora-web
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    networks:
+      - labora-network
+
+networks:
+  labora-network:
+    driver: bridge
