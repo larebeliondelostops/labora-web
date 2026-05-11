@@ -1,21 +1,37 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { publicEnv } from "@/lib/env";
 
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const headers = new Headers(options?.headers);
+
+  if (!headers.has("Content-Type") && !(options?.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(`${publicEnv.apiUrl}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
+      ...Object.fromEntries(headers.entries()),
     },
-    cache: "no-store",
+    cache: options?.cache ?? "no-store",
   });
 
   if (!response.ok) {
     throw new Error("API request failed");
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const body = await response.text();
+
+  if (!body) {
+    return undefined as T;
+  }
+
+  return JSON.parse(body) as T;
 }

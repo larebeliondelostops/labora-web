@@ -2,6 +2,11 @@ node_modules/
 .next/
 .env
 .env.local
+.env.*.local
+client_secret*.json
+client_secret_*.json
+credentials/
+*.pem
 dist/
 out/
 .netlify/
