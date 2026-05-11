@@ -1,6 +1,6 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="16" fill="#1F5E49"/>
-  <path d="M17 42V21H24V35.8H39.4V42H17Z" fill="#F6F7F2"/>
-  <path d="M34.1 20.5C43.1 20.5 50.3 27.4 50.3 36V42H44.1V36.1C44.1 31.1 40.2 27.1 34.8 27.1C33 27.1 31.3 27.6 29.8 28.4L27.2 22.9C29.2 21.4 31.6 20.5 34.1 20.5Z" fill="#9FD5BF"/>
-  <path d="M34.8 47C29.3 47 24.9 42.7 24.9 37.4C24.9 32.2 29.3 27.9 34.8 27.9V33.5C32.4 33.5 30.7 35.1 30.7 37.4C30.7 39.8 32.5 41.4 34.8 41.4C37.1 41.4 38.9 39.8 38.9 37.4H44.7C44.7 42.7 40.3 47 34.8 47Z" fill="#C89B5C"/>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" fill="#F6F0E3"/>
+  <path d="M19 105L56 37H73L45 91H76L84 105H19Z" fill="#2F8F6B"/>
+  <circle cx="62" cy="35" r="13" fill="#2F8F6B"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M84 56C101 56 113 68 114 84V105H96V98C91 104 84 107 76 107C60 107 48 96 48 81C48 66 60 56 76 56H84ZM82 71C73 71 66 77 66 84C66 92 73 98 82 98C91 98 98 92 98 84C98 77 91 71 82 71Z" fill="#2F8F6B"/>
 </svg>
