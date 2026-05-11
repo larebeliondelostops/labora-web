@@ -13,6 +13,8 @@ const config: Config = {
           green: "#2F8F6B",
           deep: "#1F5E49",
           mint: "#9FD5BF",
+          gold: "#C89B5C",
+          clay: "#B86F4B",
           ivory: "#F6F7F2",
           charcoal: "#1F2421",
           gray: "#6E7C74",

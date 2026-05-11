@@ -1,73 +1,115 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { PublicNavbar } from "@/components/layout/PublicNavbar";
-import { Card } from "@/components/ui/card";
+import {
+  FinalCTA,
+  PageIntro,
+} from "@/components/public/ConversionBlocks";
+import {
+  HomeDynamicSections,
+  HomeHero,
+  HomeProcessPreview,
+  HomeServicePreview,
+} from "@/components/public/HomePublicContent";
+import {
+  AITransparencyBanner,
+  HumanReviewCallout,
+  LegalNotice,
+  SecurityChecklist,
+} from "@/components/public/NoticeBlocks";
+import { PageContainer, Section, SectionHeader } from "@/components/public/Page";
+import { FaqAccordion } from "@/components/public/FaqAccordion";
+import { trustItems } from "@/lib/public-content";
 
-const highlights = [
-  "Reconstruccion de historia laboral",
-  "Deteccion temprana de inconsistencias",
-  "Informe tecnico listo para revisar",
-];
+export const metadata: Metadata = {
+  title: "Analisis de historia laboral y pensional",
+  description:
+    "Revisa tu historia laboral, identifica posibles inconsistencias y accede a un analisis tecnico-juridico asistido.",
+};
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
       <PublicNavbar />
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <section className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div>
-            <span className="rounded-full bg-labora-mint/40 px-4 py-2 text-sm text-labora-deep">
-              Legal-tech clara, humana y profesional
-            </span>
-            <h1 className="mt-6 max-w-3xl font-heading text-5xl font-semibold tracking-tight text-labora-charcoal">
-              Analiza tu historia laboral con una ruta guiada y entendible.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg text-labora-gray">
-              Labora organiza documentos, estructura hallazgos y te ayuda a entender
-              si hay inconsistencias pensionales o laborales sin abrumarte.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/auth/register"
-                className="rounded-full bg-labora-green px-6 py-3 font-medium text-white"
-              >
-                Iniciar analisis
-              </Link>
-              <Link
-                href="/cases/new"
-                className="rounded-full border border-labora-ui bg-white px-6 py-3 font-medium text-labora-deep"
-              >
-                Ver flujo MVP
-              </Link>
-            </div>
-          </div>
-          <Card className="bg-gradient-to-br from-white to-labora-ivory">
-            <div className="text-sm uppercase tracking-[0.3em] text-labora-gray">
-              Como funciona
-            </div>
-            <div className="mt-4 space-y-4">
-              {highlights.map((item, index) => (
-                <div key={item} className="rounded-2xl bg-white p-4">
-                  <div className="text-sm text-labora-gray">Paso 0{index + 1}</div>
-                  <div className="mt-1 font-medium text-labora-charcoal">{item}</div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </section>
+      <main>
+        <HomeHero />
 
-        <section className="mt-12 grid gap-4 md:grid-cols-3">
-          {[
-            "Documentos compatibles: historia laboral, cedula, certificaciones y resoluciones.",
-            "Precio de referencia visible antes del pago para evitar sorpresas.",
-            "El resultado asistido por tecnologia puede requerir revision profesional.",
-          ].map((text) => (
-            <Card key={text} className="text-sm text-labora-gray">
-              {text}
-            </Card>
-          ))}
-        </section>
+        <PageContainer>
+          <Section>
+            <SectionHeader
+              eyebrow="Beneficios"
+              title="Menos incertidumbre antes de avanzar"
+              description="Labora combina flujo guiado, organizacion documental y advertencias claras sobre el alcance del analisis."
+            />
+            <div className="mt-8">
+              <HomeDynamicSections />
+            </div>
+          </Section>
+
+          <Section className="border-t border-labora-ui">
+            <SectionHeader
+              eyebrow="Como funciona"
+              title="Del registro al informe, con pago al final"
+              description="Primero entiendes el proceso y recibes una orientacion preliminar. El analisis completo se desbloquea despues de la vista previa."
+            />
+            <div className="mt-8">
+              <HomeProcessPreview />
+            </div>
+          </Section>
+
+          <Section className="border-t border-labora-ui">
+            <SectionHeader
+              eyebrow="Casos de uso"
+              title="Pensado para expedientes laborales y pensionales"
+              description="No prometemos un resultado favorable. Te damos una ruta clara para revisar informacion y decidir el siguiente paso."
+            />
+            <div className="mt-8">
+              <HomeServicePreview />
+            </div>
+          </Section>
+        </PageContainer>
+
+        <PageIntro
+          eyebrow="Producto"
+          title="Una experiencia responsive para revisar, validar y avanzar"
+          description="La interfaz esta pensada para escritorio y movil: carga de documentos, seguimiento de progreso, resultados e informes se organizan dentro del expediente."
+          image="/showcase/analysis-results.jpeg"
+        />
+
+        <PageContainer>
+          <Section>
+            <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+              <SectionHeader
+                eyebrow="Confianza"
+                title="Privacidad y trazabilidad desde el primer contacto"
+                description="No subas documentos ni informacion sensible en formularios publicos. La carga documental se realiza dentro del expediente seguro."
+              />
+              <SecurityChecklist items={trustItems} />
+            </div>
+          </Section>
+
+          <Section className="border-t border-labora-ui">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <LegalNotice />
+              <AITransparencyBanner />
+              <HumanReviewCallout />
+            </div>
+          </Section>
+
+          <Section className="border-t border-labora-ui">
+            <SectionHeader
+              eyebrow="FAQ"
+              title="Preguntas frecuentes"
+              description="Respuestas rapidas antes de crear tu expediente."
+            />
+            <div className="mt-8">
+              <FaqAccordion compact />
+            </div>
+          </Section>
+        </PageContainer>
+
+        <FinalCTA />
       </main>
       <PublicFooter />
     </div>
