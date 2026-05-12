@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ClipboardEvent, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,25 +8,114 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { LoadingButton } from "@/components/auth/LoadingButton";
 import { getApiErrorMessage } from "@/lib/auth-errors";
-import { getNextAuthPath, isValidEmail, maskEmail, normalizeEmail } from "@/lib/auth-validation";
+import {
+  getNextAuthPath,
+  getSafeNextAuthPath,
+  isValidEmail,
+  maskEmail,
+  normalizeEmail,
+} from "@/lib/auth-validation";
 import { resendOtp, verifyOtp } from "@/services/auth.service";
+import { getMe } from "@/services/user.service";
 import type { OtpPurpose } from "@/types/auth";
 
 export function OtpVerificationForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const recipient = normalizeEmail(searchParams.get("recipient") || "");
+  const recipientFromQuery = normalizeEmail(searchParams.get("recipient") || "");
+  const [sessionRecipient, setSessionRecipient] = useState("");
+  const recipient = sessionRecipient || recipientFromQuery;
   const purpose = (searchParams.get("purpose") || "register") as OtpPurpose;
+  const nextPath = getSafeNextAuthPath(searchParams.get("next"));
+  const shouldAutoSend = searchParams.get("auto") === "1";
   const [code, setCode] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [isResolvingRecipient, setIsResolvingRecipient] = useState(
+    !isValidEmail(recipientFromQuery),
+  );
   const [isBlocked, setIsBlocked] = useState(false);
 
   const normalizedCode = useMemo(() => code.replace(/\D/g, "").slice(0, 6), [code]);
   const hasValidEmailRecipient = isValidEmail(recipient);
-  const canSubmit = hasValidEmailRecipient && normalizedCode.length === 6 && !isBlocked;
+  const canSubmit =
+    hasValidEmailRecipient && normalizedCode.length === 6 && !isBlocked && !isResolvingRecipient;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (isValidEmail(recipientFromQuery)) {
+      setSessionRecipient("");
+      setIsResolvingRecipient(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setIsResolvingRecipient(true);
+    getMe()
+      .then((user) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSessionRecipient(normalizeEmail(user.email));
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSessionRecipient("");
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsResolvingRecipient(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [recipientFromQuery]);
+
+  useEffect(() => {
+    if (
+      !shouldAutoSend ||
+      purpose !== "register" ||
+      !hasValidEmailRecipient ||
+      isResolvingRecipient
+    ) {
+      return;
+    }
+
+    const storageKey = `labora:otp:auto:${purpose}:${recipient}`;
+
+    if (window.sessionStorage.getItem(storageKey)) {
+      return;
+    }
+
+    window.sessionStorage.setItem(storageKey, "1");
+    setIsResending(true);
+    setSubmitError(null);
+    setStatusMessage("Estamos enviando el codigo de verificacion a tu correo.");
+
+    resendOtp({ recipient, purpose })
+      .then(() => {
+        setStatusMessage("Enviamos el codigo. Revisa tambien spam o promociones.");
+      })
+      .catch((error) => {
+        window.sessionStorage.removeItem(storageKey);
+        setSubmitError(
+          getApiErrorMessage(error, "No pudimos enviar el codigo. Intentalo nuevamente."),
+        );
+      })
+      .finally(() => {
+        setIsResending(false);
+      });
+  }, [hasValidEmailRecipient, isResolvingRecipient, purpose, recipient, shouldAutoSend]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,9 +141,16 @@ export function OtpVerificationForm() {
         code: normalizedCode,
       });
 
-      const nextPath =
-        response && "nextStep" in response ? getNextAuthPath(response.nextStep) : "/consentimientos";
-      router.push(nextPath);
+      const responseNextPath =
+        response && "nextStep" in response ? getNextAuthPath(response.nextStep) : undefined;
+      const registerFallbackPath = "/registro?step=datos";
+
+      router.push(
+        nextPath ||
+          (purpose === "register"
+            ? registerFallbackPath
+            : responseNextPath || "/consentimientos"),
+      );
     } catch (error) {
       const message = getApiErrorMessage(error, "No pudimos verificar el codigo.");
       setSubmitError(message);
@@ -101,7 +197,9 @@ export function OtpVerificationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-5">
-      {!hasValidEmailRecipient ? (
+      {isResolvingRecipient ? (
+        <InlineAlert tone="info">Validando tu sesion de Google para leer el correo.</InlineAlert>
+      ) : !hasValidEmailRecipient ? (
         <InlineAlert tone="warning">
           Falta el correo de destino. Vuelve a registro o login para solicitar un nuevo codigo.
         </InlineAlert>

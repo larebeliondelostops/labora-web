@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { TextInput } from "@/components/auth/FormField";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { getApiErrorMessage, getErrorCode } from "@/lib/auth-errors";
@@ -110,6 +111,14 @@ export function LoginForm() {
         </InlineAlert>
       ) : null}
       <FormErrorSummary message={submitError} />
+
+      <GoogleLoginButton redirectTo="/app/dashboard" />
+
+      <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-labora-gray">
+        <span className="h-px flex-1 bg-labora-ui" />
+        <span>o ingresa con contrasena</span>
+        <span className="h-px flex-1 bg-labora-ui" />
+      </div>
 
       <TextInput
         label="Correo electronico"

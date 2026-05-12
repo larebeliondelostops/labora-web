@@ -86,3 +86,11 @@ export function getNextAuthPath(nextStep?: string): string {
 
   return "/consentimientos";
 }
+
+export function getSafeNextAuthPath(value?: string | null): string | undefined {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return undefined;
+  }
+
+  return value;
+}

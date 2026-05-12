@@ -3,22 +3,18 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { FormErrorSummary } from "@/components/auth/FormFeedback";
+import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { TextInput, SelectInput } from "@/components/auth/FormField";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
-import { PasswordInput } from "@/components/auth/PasswordInput";
-import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/auth-errors";
-import {
-  cleanDocumentNumber,
-  isStrongPassword,
-  isValidEmail,
-  normalizeEmail,
-} from "@/lib/auth-validation";
-import { register } from "@/services/auth.service";
-import { getMe } from "@/services/user.service";
+import { cleanDocumentNumber, normalizeEmail } from "@/lib/auth-validation";
+import { getMe, updateMe } from "@/services/user.service";
+import type { CurrentUser } from "@/types/user";
+
+const profileCompletionPath = "/registro?step=datos";
 
 const documentTypes = [
   { value: "", label: "Selecciona" },
@@ -35,10 +31,7 @@ interface RegisterFormState {
   lastName: string;
   documentType: string;
   documentNumber: string;
-  email: string;
   phone: string;
-  password: string;
-  confirmPassword: string;
 }
 
 const initialState: RegisterFormState = {
@@ -46,42 +39,124 @@ const initialState: RegisterFormState = {
   lastName: "",
   documentType: "",
   documentNumber: "",
-  email: "",
   phone: "",
-  password: "",
-  confirmPassword: "",
 };
+
+function valueOrEmpty(value?: string | null): string {
+  return value?.trim() || "";
+}
+
+function buildRegisterOtpPath(email?: string): string {
+  const params = new URLSearchParams({
+    purpose: "register",
+    next: profileCompletionPath,
+    auto: "1",
+  });
+
+  if (email) {
+    params.set("recipient", normalizeEmail(email));
+  }
+
+  return `/verificar-otp?${params.toString()}`;
+}
+
+function getNameFallback(user: CurrentUser): Pick<RegisterFormState, "firstName" | "lastName"> {
+  const firstName = valueOrEmpty(user.firstName);
+  const lastName = valueOrEmpty(user.lastName);
+
+  if (firstName || lastName) {
+    return { firstName, lastName };
+  }
+
+  const parts = valueOrEmpty(user.fullName).split(/\s+/).filter(Boolean);
+
+  if (parts.length <= 1) {
+    return { firstName: parts[0] || "", lastName: "" };
+  }
+
+  return {
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts[parts.length - 1],
+  };
+}
+
+function getInitialState(user: CurrentUser): RegisterFormState {
+  const name = getNameFallback(user);
+
+  return {
+    ...name,
+    documentType: valueOrEmpty(user.documentType),
+    documentNumber: valueOrEmpty(user.documentNumber),
+    phone: valueOrEmpty(user.phone),
+  };
+}
+
+function hasCompletedRegistration(user: CurrentUser): boolean {
+  const state = getInitialState(user);
+
+  return (
+    state.firstName.trim().length >= 2 &&
+    state.lastName.trim().length >= 2 &&
+    Boolean(state.documentType) &&
+    cleanDocumentNumber(state.documentNumber).length >= 4
+  );
+}
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isProfileStep = searchParams.get("step") === "datos";
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [form, setForm] = useState(initialState);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
+    setIsCheckingSession(true);
     getMe()
       .then((user) => {
         if (!isMounted) {
           return;
         }
 
+        setCurrentUser(user);
+        setForm(getInitialState(user));
+
         if (!user.isVerified) {
-          router.replace(`/verificar-otp?recipient=${encodeURIComponent(user.email)}&purpose=register`);
+          router.replace(buildRegisterOtpPath(user.email));
           return;
         }
 
-        router.replace("/consentimientos");
+        if (hasCompletedRegistration(user)) {
+          router.replace("/consentimientos");
+          return;
+        }
+
+        if (!isProfileStep) {
+          router.replace(profileCompletionPath);
+          return;
+        }
+
+        setIsCheckingSession(false);
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+
+        setCurrentUser(null);
+        setIsCheckingSession(false);
+      });
 
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, [isProfileStep, router]);
 
   const errors = useMemo(() => {
     const nextErrors: Record<string, string> = {};
@@ -102,18 +177,6 @@ export function RegisterForm() {
       nextErrors.documentNumber = "Ingresa un documento valido.";
     }
 
-    if (!isValidEmail(form.email)) {
-      nextErrors.email = "Ingresa un correo valido.";
-    }
-
-    if (!isStrongPassword(form.password)) {
-      nextErrors.password = "La contrasena debe cumplir las reglas minimas.";
-    }
-
-    if (form.password !== form.confirmPassword) {
-      nextErrors.confirmPassword = "Las contrasenas no coinciden.";
-    }
-
     return { ...nextErrors, ...fieldErrors };
   }, [fieldErrors, form]);
 
@@ -132,11 +195,13 @@ export function RegisterForm() {
       lastName: true,
       documentType: true,
       documentNumber: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
     });
     setSubmitError(null);
+
+    if (!currentUser) {
+      setSubmitError("Primero conecta tu cuenta de Google para completar el registro.");
+      return;
+    }
 
     if (Object.values(errors).some(Boolean)) {
       return;
@@ -145,30 +210,98 @@ export function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      const email = normalizeEmail(form.email);
-      await register({
+      await updateMe({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         documentType: form.documentType,
         documentNumber: cleanDocumentNumber(form.documentNumber),
-        email,
         phone: form.phone.trim() || undefined,
-        password: form.password,
       });
-      router.push(`/verificar-otp?recipient=${encodeURIComponent(email)}&purpose=register`);
+
+      router.push("/consentimientos");
     } catch (error) {
       setFieldErrors(getApiFieldErrors(error));
       setSubmitError(
-        getApiErrorMessage(error, "No pudimos crear tu cuenta. Intentalo nuevamente."),
+        getApiErrorMessage(error, "No pudimos guardar tus datos. Intentalo nuevamente."),
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isCheckingSession) {
+    return (
+      <div className="grid gap-4">
+        <div className="h-11 animate-pulse rounded-lg bg-labora-ui" />
+        <div className="h-20 animate-pulse rounded-lg bg-labora-ivory" />
+        <div className="h-11 animate-pulse rounded-lg bg-labora-ui" />
+      </div>
+    );
+  }
+
+  if (!isProfileStep) {
+    return (
+      <div className="grid gap-5">
+        <InlineAlert tone="info">
+          El registro inicia con Google. Despues validaremos un codigo enviado a tu
+          correo y completaras tus datos basicos.
+        </InlineAlert>
+
+        <GoogleLoginButton
+          redirectTo={buildRegisterOtpPath()}
+          label="Registrarme con Google"
+        />
+
+        <div className="grid gap-3 rounded-lg border border-labora-ui bg-labora-ivory p-4 text-sm text-labora-gray">
+          <p className="font-semibold text-labora-charcoal">Flujo de registro</p>
+          <p>1. Conecta tu cuenta de Google.</p>
+          <p>2. Verifica el codigo OTP enviado a tu correo.</p>
+          <p>3. Completa nombres, documento y telefono opcional.</p>
+        </div>
+
+        <p className="text-center text-sm text-labora-gray">
+          Ya tienes cuenta?{" "}
+          <Link href="/login" className="font-semibold text-labora-deep underline">
+            Inicia sesion
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="grid gap-5">
+        <InlineAlert tone="warning">
+          Para completar tus datos primero debes conectar tu cuenta de Google.
+        </InlineAlert>
+        <GoogleLoginButton
+          redirectTo={buildRegisterOtpPath()}
+          label="Continuar con Google"
+        />
+        <Link href="/login" className="text-center text-sm font-semibold text-labora-deep underline">
+          Ya tengo cuenta
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="grid gap-5">
+      <InlineAlert tone="success">
+        Cuenta Google conectada: {currentUser.email}. No necesitas crear contrasena.
+      </InlineAlert>
       <FormErrorSummary message={submitError} />
+
+      <TextInput
+        label="Correo electronico"
+        name="email"
+        type="email"
+        value={currentUser.email}
+        disabled
+        helpText="Este correo ya quedo asociado por Google."
+        onChange={() => undefined}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <TextInput
@@ -215,61 +348,18 @@ export function RegisterForm() {
       </div>
 
       <TextInput
-        label="Correo electronico"
-        name="email"
-        type="email"
-        value={form.email}
-        disabled={isSubmitting}
-        error={showError("email")}
-        onBlur={() => setTouched((value) => ({ ...value, email: true }))}
-        onChange={(event) => setValue("email", event.target.value.toLowerCase())}
-      />
-
-      <TextInput
         label="Celular"
         name="phone"
         type="tel"
         value={form.phone}
         disabled={isSubmitting}
-        helpText="Formato recomendado: +57 300 111 2233."
+        helpText="Opcional. Formato recomendado: +57 300 111 2233."
         onChange={(event) => setValue("phone", event.target.value)}
       />
 
-      <PasswordInput
-        label="Contrasena"
-        name="password"
-        value={form.password}
-        disabled={isSubmitting}
-        error={showError("password")}
-        onBlur={() => setTouched((value) => ({ ...value, password: true }))}
-        onChange={(event) => setValue("password", event.target.value)}
-      />
-
-      <PasswordInput
-        label="Confirmar contrasena"
-        name="confirmPassword"
-        value={form.confirmPassword}
-        disabled={isSubmitting}
-        error={showError("confirmPassword")}
-        onBlur={() => setTouched((value) => ({ ...value, confirmPassword: true }))}
-        onChange={(event) => setValue("confirmPassword", event.target.value)}
-      />
-
-      <PasswordStrengthMeter
-        password={form.password}
-        confirmPassword={form.confirmPassword}
-      />
-
       <LoadingButton type="submit" isLoading={isSubmitting}>
-        Crear cuenta
+        Finalizar registro
       </LoadingButton>
-
-      <p className="text-center text-sm text-labora-gray">
-        Ya tienes cuenta?{" "}
-        <Link href="/login" className="font-semibold text-labora-deep underline">
-          Inicia sesion
-        </Link>
-      </p>
     </form>
   );
 }

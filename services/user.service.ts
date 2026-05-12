@@ -5,6 +5,8 @@ export interface UpdateMePayload {
   firstName: string;
   lastName: string;
   phone?: string;
+  documentType?: string;
+  documentNumber?: string;
 }
 
 export async function getMe(): Promise<CurrentUser> {

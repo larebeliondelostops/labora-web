@@ -12,9 +12,9 @@ export default function LoginPage() {
   return (
     <AuthLayout
       title="Ingresa a tu cuenta"
-      subtitle="Continua con tu expediente o inicia un nuevo analisis."
+      subtitle="Continua con Google o usa tus credenciales si tu cuenta las tiene habilitadas."
       sideTitle="Continua tu flujo con claridad"
-      sideDescription="Ingresa con correo y contrasena. Si tu cuenta requiere verificacion, te llevaremos al codigo OTP antes de continuar."
+      sideDescription="Las cuentas nuevas usan Google como acceso principal. Si tu cuenta requiere verificacion, te llevaremos al codigo OTP antes de continuar."
     >
       <LoginForm />
     </AuthLayout>
