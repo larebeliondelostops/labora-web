@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import { getNextAuthPath } from "@/lib/auth-validation";
 import { getCurrentUser } from "@/lib/auth";
 
 export function StartRedirect() {
@@ -12,9 +13,9 @@ export function StartRedirect() {
     let isMounted = true;
 
     getCurrentUser()
-      .then(() => {
+      .then((user) => {
         if (isMounted) {
-          router.replace("/app/dashboard");
+          router.replace(getNextAuthPath(user.nextStep, user.email));
         }
       })
       .catch(() => {

@@ -24,12 +24,20 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function getStatusFromUser(user: CurrentUser): AuthStatus {
-  if (user.status === "blocked" || user.status === "suspended" || !user.isActive) {
+  if (user.status === "blocked" || user.status === "suspended" || user.isActive === false) {
     return "blocked";
   }
 
-  if (user.status === "pending_verification" || user.isVerified === false) {
+  if (user.nextStep === "verify_otp" || user.requiresOtp || user.isVerified === false) {
     return "pending_verification";
+  }
+
+  if (
+    user.nextStep === "complete_profile" ||
+    user.nextStep === "profile" ||
+    user.registrationCompleted === false
+  ) {
+    return "profile_incomplete";
   }
 
   return "authenticated";

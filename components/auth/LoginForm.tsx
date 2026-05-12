@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { InlineAlert } from "@/components/auth/FormFeedback";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { ApiError } from "@/lib/api";
+import { getNextAuthPath } from "@/lib/auth-validation";
 import { getMe } from "@/services/user.service";
 
 export function LoginForm() {
   const router = useRouter();
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -20,16 +24,22 @@ export function LoginForm() {
           return;
         }
 
-        if (!user.isVerified) {
-          router.replace(
-            `/verificar-otp?recipient=${encodeURIComponent(user.email)}&purpose=register`,
-          );
+        router.replace(getNextAuthPath(user.nextStep, user.email));
+      })
+      .catch((error) => {
+        if (!isMounted) {
           return;
         }
 
-        router.replace("/app/dashboard");
+        if (error instanceof ApiError && error.status !== 401) {
+          setSessionError("No pudimos revisar tu sesion. Puedes intentar entrar con Google.");
+        }
       })
-      .catch(() => undefined);
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingSession(false);
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -38,6 +48,11 @@ export function LoginForm() {
 
   return (
     <div className="grid gap-5">
+      {isCheckingSession ? (
+        <InlineAlert tone="info">Revisando si ya tienes una sesion activa.</InlineAlert>
+      ) : null}
+      {sessionError ? <InlineAlert tone="warning">{sessionError}</InlineAlert> : null}
+
       <InlineAlert tone="info">
         Usa tu cuenta de Google para entrar a Labora. El acceso se valida desde
         Google y la sesion queda protegida por el backend.

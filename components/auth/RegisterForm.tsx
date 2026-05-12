@@ -10,7 +10,7 @@ import { TextInput, SelectInput } from "@/components/auth/FormField";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
 import { getApiErrorMessage, getApiFieldErrors } from "@/lib/auth-errors";
-import { cleanDocumentNumber, normalizeEmail } from "@/lib/auth-validation";
+import { cleanDocumentNumber, getNextAuthPath, normalizeEmail } from "@/lib/auth-validation";
 import { getMe, updateMe } from "@/services/user.service";
 import type { CurrentUser } from "@/types/user";
 
@@ -92,6 +92,10 @@ function getInitialState(user: CurrentUser): RegisterFormState {
 }
 
 function hasCompletedRegistration(user: CurrentUser): boolean {
+  if (user.registrationCompleted !== undefined) {
+    return user.registrationCompleted;
+  }
+
   const state = getInitialState(user);
 
   return (
@@ -127,17 +131,36 @@ export function RegisterForm() {
         setCurrentUser(user);
         setForm(getInitialState(user));
 
-        if (!user.isVerified) {
+        if (user.nextStep === "verify_otp") {
           router.replace(buildRegisterOtpPath(user.email));
           return;
         }
 
-        if (hasCompletedRegistration(user)) {
-          router.replace("/consentimientos");
+        if (user.nextStep === "dashboard") {
+          router.replace("/app/dashboard");
           return;
         }
 
-        if (!isProfileStep) {
+        if (
+          user.nextStep === "complete_profile" ||
+          user.nextStep === "profile" ||
+          !hasCompletedRegistration(user)
+        ) {
+          if (!isProfileStep) {
+            router.replace(profileCompletionPath);
+            return;
+          }
+
+          setIsCheckingSession(false);
+          return;
+        }
+
+        if (user.nextStep) {
+          router.replace(getNextAuthPath(user.nextStep, user.email));
+          return;
+        }
+
+        if (!isProfileStep && !hasCompletedRegistration(user)) {
           router.replace(profileCompletionPath);
           return;
         }
@@ -218,7 +241,16 @@ export function RegisterForm() {
         phone: form.phone.trim() || undefined,
       });
 
-      router.push("/consentimientos");
+      const refreshedUser = await getMe();
+      setCurrentUser(refreshedUser);
+      setForm(getInitialState(refreshedUser));
+
+      if (refreshedUser.nextStep === "complete_profile" || refreshedUser.nextStep === "profile") {
+        setSubmitError("Aun faltan datos requeridos para completar el registro.");
+        return;
+      }
+
+      router.push(getNextAuthPath(refreshedUser.nextStep || "dashboard", refreshedUser.email));
     } catch (error) {
       setFieldErrors(getApiFieldErrors(error));
       setSubmitError(

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { LoadingButton } from "@/components/auth/LoadingButton";
+import { ApiError } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/auth-errors";
 import {
   getNextAuthPath,
@@ -33,9 +34,7 @@ export function OtpVerificationForm() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [isResolvingRecipient, setIsResolvingRecipient] = useState(
-    !isValidEmail(recipientFromQuery),
-  );
+  const [isResolvingRecipient, setIsResolvingRecipient] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
 
   const normalizedCode = useMemo(() => code.replace(/\D/g, "").slice(0, 6), [code]);
@@ -46,14 +45,6 @@ export function OtpVerificationForm() {
   useEffect(() => {
     let isMounted = true;
 
-    if (isValidEmail(recipientFromQuery)) {
-      setSessionRecipient("");
-      setIsResolvingRecipient(false);
-      return () => {
-        isMounted = false;
-      };
-    }
-
     setIsResolvingRecipient(true);
     getMe()
       .then((user) => {
@@ -63,12 +54,20 @@ export function OtpVerificationForm() {
 
         setSessionRecipient(normalizeEmail(user.email));
       })
-      .catch(() => {
+      .catch((error) => {
         if (!isMounted) {
           return;
         }
 
         setSessionRecipient("");
+
+        if (!isValidEmail(recipientFromQuery)) {
+          setSubmitError(
+            error instanceof ApiError && error.status === 401
+              ? "Tu sesion no esta activa. Vuelve a iniciar con Google."
+              : "No pudimos cargar tu correo de verificacion.",
+          );
+        }
       })
       .finally(() => {
         if (isMounted) {
@@ -85,37 +84,16 @@ export function OtpVerificationForm() {
     if (
       !shouldAutoSend ||
       purpose !== "register" ||
-      !hasValidEmailRecipient ||
-      isResolvingRecipient
+      isResolvingRecipient ||
+      !hasValidEmailRecipient
     ) {
       return;
     }
 
-    const storageKey = `labora:otp:auto:${purpose}:${recipient}`;
-
-    if (window.sessionStorage.getItem(storageKey)) {
-      return;
-    }
-
-    window.sessionStorage.setItem(storageKey, "1");
-    setIsResending(true);
-    setSubmitError(null);
-    setStatusMessage("Estamos enviando el codigo de verificacion a tu correo.");
-
-    resendOtp({ recipient, purpose })
-      .then(() => {
-        setStatusMessage("Enviamos el codigo. Revisa tambien spam o promociones.");
-      })
-      .catch((error) => {
-        window.sessionStorage.removeItem(storageKey);
-        setSubmitError(
-          getApiErrorMessage(error, "No pudimos enviar el codigo. Intentalo nuevamente."),
-        );
-      })
-      .finally(() => {
-        setIsResending(false);
-      });
-  }, [hasValidEmailRecipient, isResolvingRecipient, purpose, recipient, shouldAutoSend]);
+    setStatusMessage(
+      "Si tu cuenta requiere verificacion, el codigo inicial fue enviado automaticamente.",
+    );
+  }, [hasValidEmailRecipient, isResolvingRecipient, purpose, shouldAutoSend]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,15 +120,23 @@ export function OtpVerificationForm() {
       });
 
       const responseNextPath =
-        response && "nextStep" in response ? getNextAuthPath(response.nextStep) : undefined;
+        response && "nextStep" in response
+          ? getNextAuthPath(response.nextStep, recipient)
+          : undefined;
       const registerFallbackPath = "/registro?step=datos";
 
-      router.push(
-        nextPath ||
-          (purpose === "register"
-            ? registerFallbackPath
-            : responseNextPath || "/consentimientos"),
-      );
+      if (responseNextPath) {
+        router.push(responseNextPath);
+        return;
+      }
+
+      try {
+        const user = await getMe();
+        router.push(getNextAuthPath(user.nextStep, user.email));
+        return;
+      } catch {
+        router.push(nextPath || (purpose === "register" ? registerFallbackPath : "/app/dashboard"));
+      }
     } catch (error) {
       const message = getApiErrorMessage(error, "No pudimos verificar el codigo.");
       setSubmitError(message);
@@ -164,6 +150,10 @@ export function OtpVerificationForm() {
   };
 
   const handleResend = async () => {
+    if (isResolvingRecipient) {
+      return;
+    }
+
     if (!hasValidEmailRecipient) {
       setSubmitError("No encontramos un correo valido para enviar el codigo.");
       return;

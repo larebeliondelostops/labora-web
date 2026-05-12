@@ -29,6 +29,23 @@ export class ApiError extends Error {
   }
 }
 
+export interface ApiEnvelope<T> {
+  data: T;
+}
+
+export function unwrapApiData<T>(response: T | ApiEnvelope<T>): T {
+  if (
+    response &&
+    typeof response === "object" &&
+    "data" in response &&
+    (response as ApiEnvelope<T>).data !== undefined
+  ) {
+    return (response as ApiEnvelope<T>).data;
+  }
+
+  return response as T;
+}
+
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit,

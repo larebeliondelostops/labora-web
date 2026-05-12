@@ -1,5 +1,12 @@
 export type UserRole = "user" | "admin" | "reviewer" | "legal_reviewer" | "support";
 
+export type UserNextStep =
+  | "dashboard"
+  | "verify_otp"
+  | "complete_profile"
+  | "profile"
+  | "consents";
+
 export interface User {
   id: string;
   firstName: string;
@@ -25,4 +32,7 @@ export interface CurrentUser {
   isVerified: boolean;
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  requiresOtp?: boolean;
+  registrationCompleted?: boolean;
+  nextStep?: UserNextStep;
 }

@@ -20,9 +20,18 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
       const recipient = user?.email ? `?recipient=${encodeURIComponent(user.email)}&purpose=register` : "";
       router.replace(`/verificar-otp${recipient}`);
     }
+
+    if (status === "profile_incomplete") {
+      router.replace("/registro?step=datos");
+    }
   }, [router, status, user?.email]);
 
-  if (status === "unknown" || status === "guest" || status === "pending_verification") {
+  if (
+    status === "unknown" ||
+    status === "guest" ||
+    status === "pending_verification" ||
+    status === "profile_incomplete"
+  ) {
     return <SkeletonCard />;
   }
 

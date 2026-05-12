@@ -1,10 +1,11 @@
-import type { CurrentUser } from "@/types/user";
+import type { CurrentUser, UserNextStep } from "@/types/user";
 
 export type AuthStatus =
   | "unknown"
   | "guest"
   | "authenticated"
   | "pending_verification"
+  | "profile_incomplete"
   | "blocked";
 
 export type AuthUserStatus =
@@ -45,7 +46,7 @@ export interface LoginPayload {
 
 export interface LoginResponse {
   user?: AuthUser | CurrentUser;
-  nextStep?: "verify_otp" | "consents" | "dashboard" | "profile";
+  nextStep?: UserNextStep;
   /** OTP en frontend se maneja exclusivamente por correo. */
   recipient?: string;
   purpose?: OtpPurpose;

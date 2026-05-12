@@ -1,4 +1,5 @@
-import { apiFetch } from "@/lib/api";
+import { apiFetch, unwrapApiData } from "@/lib/api";
+import type { ApiEnvelope } from "@/lib/api";
 import type {
   ForgotPasswordPayload,
   LoginPayload,
@@ -17,17 +18,23 @@ export async function register(payload: RegisterPayload): Promise<void> {
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  return apiFetch<LoginResponse>("/auth/login", {
+  const response = await apiFetch<LoginResponse | ApiEnvelope<LoginResponse>>("/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+  return unwrapApiData(response);
 }
 
 export async function verifyOtp(payload: OtpPayload): Promise<LoginResponse | void> {
-  return apiFetch<LoginResponse | void>("/auth/verify-otp", {
+  const response = await apiFetch<
+    LoginResponse | ApiEnvelope<LoginResponse> | void
+  >("/auth/verify-otp", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+  return response ? unwrapApiData(response) : undefined;
 }
 
 export async function resendOtp(payload: ResendOtpPayload): Promise<void> {

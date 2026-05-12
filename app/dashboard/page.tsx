@@ -8,6 +8,7 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Card } from "@/components/ui/card";
+import { getNextAuthPath } from "@/lib/auth-validation";
 import { getCurrentUser } from "@/lib/auth";
 import type { CurrentUser } from "@/types/user";
 
@@ -22,6 +23,11 @@ export default function DashboardPage() {
     getCurrentUser()
       .then((currentUser) => {
         if (isMounted) {
+          if (currentUser.nextStep && currentUser.nextStep !== "dashboard") {
+            router.replace(getNextAuthPath(currentUser.nextStep, currentUser.email));
+            return;
+          }
+
           setUser(currentUser);
         }
       })

@@ -71,17 +71,27 @@ export function cleanDocumentNumber(value: string): string {
   return value.trim().replace(/\s+/g, "");
 }
 
-export function getNextAuthPath(nextStep?: string): string {
+export function getNextAuthPath(nextStep?: string, email?: string): string {
   if (nextStep === "verify_otp") {
-    return "/verificar-otp";
+    const params = new URLSearchParams({ purpose: "register" });
+
+    if (email) {
+      params.set("recipient", normalizeEmail(email));
+    }
+
+    return `/verificar-otp?${params.toString()}`;
   }
 
   if (nextStep === "dashboard") {
     return "/app/dashboard";
   }
 
-  if (nextStep === "profile") {
-    return "/app/perfil";
+  if (nextStep === "complete_profile" || nextStep === "profile") {
+    return "/registro?step=datos";
+  }
+
+  if (nextStep === "consents") {
+    return "/consentimientos";
   }
 
   return "/consentimientos";
