@@ -22,11 +22,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/logo-mark.svg", sizes: "128x128", type: "image/svg+xml" },
+      { url: "/favicon.png", sizes: "64x64", type: "image/png" },
+      { url: "/icono-labora-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icono-labora-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/favicon.svg",
-    apple: "/apple-touch-icon.svg",
+    shortcut: "/favicon.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 

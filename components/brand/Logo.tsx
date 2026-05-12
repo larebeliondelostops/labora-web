@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { cn } from "@/lib/utils";
+
 interface LogoProps {
   href?: string;
   compact?: boolean;
@@ -7,12 +9,24 @@ interface LogoProps {
 }
 
 export function Logo({ href = "/", compact = false, className }: LogoProps) {
-  const image = (
+  const image = compact ? (
     <img
-      src={compact ? "/logo-mark.svg" : "/logo.svg"}
+      src="/icono-labora-192.png"
       alt="Labora"
-      className={compact ? "h-9 w-9" : "h-10 w-auto"}
+      className="h-9 w-9 object-contain"
     />
+  ) : (
+    <span className="inline-flex items-center gap-2">
+      <img
+        src="/icono-labora-192.png"
+        alt=""
+        aria-hidden="true"
+        className="h-10 w-10 object-contain"
+      />
+      <span className="font-heading text-2xl font-extrabold text-labora-charcoal">
+        Labora
+      </span>
+    </span>
   );
 
   if (!href) {
@@ -20,7 +34,11 @@ export function Logo({ href = "/", compact = false, className }: LogoProps) {
   }
 
   return (
-    <Link href={href} className={className} aria-label="Ir al inicio de Labora">
+    <Link
+      href={href}
+      className={cn("inline-flex items-center", className)}
+      aria-label="Ir al inicio de Labora"
+    >
       {image}
     </Link>
   );
