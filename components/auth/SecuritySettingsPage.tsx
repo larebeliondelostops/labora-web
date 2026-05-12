@@ -88,18 +88,12 @@ export function SecuritySettingsPage() {
 
       <section className="rounded-2xl border border-labora-ui bg-white p-6 shadow-panel">
         <h2 className="font-heading text-xl font-semibold text-labora-charcoal">
-          Contrasena
+          Acceso con Google
         </h2>
         <p className="mt-2 text-sm leading-6 text-labora-gray">
-          Si sospechas de un acceso no autorizado, restablece tu contrasena y cierra todas las
-          sesiones.
+          Labora no administra credenciales propias para tu cuenta. El ingreso se hace con
+          Google y desde aqui puedes cerrar sesiones activas si no reconoces algun acceso.
         </p>
-        <a
-          href="/recuperar-contrasena"
-          className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-labora-ui bg-white px-4 py-2 text-sm font-semibold text-labora-deep hover:bg-labora-ivory"
-        >
-          Cambiar contrasena
-        </a>
       </section>
 
       <section className="rounded-2xl border border-labora-ui bg-white p-6 shadow-panel">
