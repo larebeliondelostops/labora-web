@@ -24,6 +24,43 @@ En Netlify, configurar esas mismas claves en las variables de entorno del sitio
 antes de construir. No guardar secretos de Google, JWT ni archivos
 `client_secret_*.json` en este repositorio.
 
+## Cuenta y autenticacion
+
+Rutas principales:
+
+```txt
+/registro
+/login
+/verificar-otp
+/recuperar-contrasena
+/restablecer-contrasena
+/app/perfil
+/app/perfil/seguridad
+```
+
+El frontend consume el backend desde `NEXT_PUBLIC_API_URL` y usa cookies HttpOnly
+con `credentials: "include"`. Los servicios estan en `services/` y no guardan
+tokens en `localStorage` ni `sessionStorage`.
+
+## Iconos Labora
+
+Los iconos exportados estan disponibles en:
+
+```txt
+public/icons/labora/original_png
+public/icons/labora/upscaled_8x_png
+public/icons/labora/manifest.csv
+public/icons/labora/preview_sheet.png
+```
+
+Para renderizar un icono PNG por nombre:
+
+```tsx
+import { LaboraIcon } from "@/components/ui/labora-icon";
+
+<LaboraIcon name="desktop_sidebar_home" />
+```
+
 ## Incluye
 
 - Landing publica

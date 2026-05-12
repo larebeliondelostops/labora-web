@@ -14,12 +14,12 @@ export function StartRedirect() {
     getCurrentUser()
       .then(() => {
         if (isMounted) {
-          router.replace("/cases/new");
+          router.replace("/app/dashboard");
         }
       })
       .catch(() => {
         if (isMounted) {
-          router.replace("/auth/register");
+          router.replace("/registro");
         }
       });
 

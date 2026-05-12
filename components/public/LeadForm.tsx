@@ -111,7 +111,7 @@ export function LeadForm() {
       <div className="rounded-lg border border-labora-ui bg-white p-6">
         <SuccessState message="Recibimos tus datos. Para revisar tu caso, crea tu cuenta e inicia un expediente." />
         <div className="mt-5">
-          <CtaLink href="/auth/register" eventLabel="lead_success_crear_cuenta">
+          <CtaLink href="/registro" eventLabel="lead_success_crear_cuenta">
             Crear cuenta
           </CtaLink>
         </div>

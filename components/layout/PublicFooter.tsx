@@ -26,7 +26,7 @@ export function PublicFooter() {
           <nav className="mt-3 grid gap-2 text-sm text-labora-gray">
             <Link href="/privacidad">Privacidad</Link>
             <Link href="/contacto">Contacto</Link>
-            <Link href="/auth/login">Ingresar</Link>
+            <Link href="/login">Ingresar</Link>
           </nav>
         </div>
       </div>

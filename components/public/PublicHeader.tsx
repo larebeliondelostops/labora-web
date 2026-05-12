@@ -43,7 +43,7 @@ export function PublicHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/auth/login" className="text-sm font-semibold text-labora-deep">
+          <Link href="/login" className="text-sm font-semibold text-labora-deep">
             Ingresar
           </Link>
           <CtaLink href="/iniciar" eventLabel="header_iniciar">
@@ -76,7 +76,7 @@ export function PublicHeader() {
               </Link>
             ))}
             <Link
-              href="/auth/login"
+              href="/login"
               onClick={() => setIsOpen(false)}
               className="rounded-lg px-3 py-3 font-semibold text-labora-deep hover:bg-labora-ivory"
             >

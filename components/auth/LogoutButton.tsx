@@ -13,7 +13,7 @@ export function LogoutButton() {
     try {
       await logout();
     } finally {
-      window.location.href = "/auth/login";
+      window.location.href = "/login";
     }
   };
 

@@ -1,4 +1,4 @@
-export type UserRole = "user" | "admin" | "reviewer";
+export type UserRole = "user" | "admin" | "reviewer" | "legal_reviewer" | "support";
 
 export interface User {
   id: string;
@@ -16,6 +16,13 @@ export interface CurrentUser {
   fullName?: string | null;
   avatarUrl?: string | null;
   role: UserRole;
+  roles?: UserRole[];
+  status?: "pending_verification" | "active" | "blocked" | "suspended" | "deleted";
+  documentType?: string | null;
+  documentNumber?: string | null;
+  phone?: string | null;
   isActive: boolean;
   isVerified: boolean;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
 }

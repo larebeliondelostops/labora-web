@@ -27,7 +27,7 @@ export default function DashboardPage() {
       })
       .catch(() => {
         if (isMounted) {
-          router.replace("/auth/login");
+          router.replace("/login");
         }
       })
       .finally(() => {
