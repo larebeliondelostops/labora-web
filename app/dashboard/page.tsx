@@ -76,7 +76,7 @@ export default function DashboardPage() {
                   Ya puedes crear tu primer expediente de analisis laboral o pensional.
                 </p>
                 <Link
-                  href="/cases/new"
+                  href="/app/cases/new"
                   className="mt-6 inline-flex rounded-full bg-labora-green px-5 py-3 text-sm font-semibold text-white transition hover:bg-labora-deep"
                 >
                   Crear nuevo caso

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { LayoutDashboard, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import { FolderOpen, LayoutDashboard, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 
 import { Logo } from "@/components/brand/Logo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/cases", label: "Expedientes", icon: FolderOpen },
   { href: "/app/perfil", label: "Perfil", icon: UserRound },
   { href: "/app/perfil/seguridad", label: "Seguridad", icon: LockKeyhole },
   { href: "/app/onboarding/consentimientos", label: "Consentimientos", icon: ShieldCheck },

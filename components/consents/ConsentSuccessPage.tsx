@@ -15,7 +15,7 @@ import type { ConsentHistoryItem, ConsentStatusResponse } from "@/types/consent"
 export function ConsentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextUrl = searchParams.get("next") || "/cases/new";
+  const nextUrl = searchParams.get("next") || "/app/cases/new";
   const acceptedAtFromQuery = searchParams.get("acceptedAt") || undefined;
   const [status, setStatus] = useState<ConsentStatusResponse | null>(null);
   const [history, setHistory] = useState<ConsentHistoryItem[]>([]);

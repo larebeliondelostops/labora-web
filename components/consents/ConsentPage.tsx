@@ -97,7 +97,7 @@ function getStatusFromSelection(
   return backendStatus === "completed" ? "completed" : "not_started";
 }
 
-export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: ConsentPageProps) {
+export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }: ConsentPageProps) {
   const router = useRouter();
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [status, setStatus] = useState<ConsentStatusResponse>(emptyStatus);

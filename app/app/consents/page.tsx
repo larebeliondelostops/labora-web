@@ -6,11 +6,11 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ConsentPage } from "@/components/consents/ConsentPage";
 
 export const metadata: Metadata = {
-  title: "Consentimientos",
-  description: "Acepta las autorizaciones necesarias para continuar tu expediente en Labora.",
+  title: "Autorizaciones",
+  description: "Acepta las autorizaciones necesarias para crear tu expediente.",
 };
 
-export default function OnboardingConsentimientosPage() {
+export default function AppConsentsPage() {
   return (
     <AuthProvider>
       <AppAccountLayout>
