@@ -103,6 +103,7 @@ export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: Con
   const [status, setStatus] = useState<ConsentStatusResponse>(emptyStatus);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
   const [showMissing, setShowMissing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,6 +161,24 @@ export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: Con
     load();
   }, [mode]);
 
+  useEffect(() => {
+    if (!isDocumentViewerOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDocumentViewerOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDocumentViewerOpen]);
+
   const handleCheck = (document: LegalDocument, value: boolean) => {
     setChecked((current) => ({ ...current, [document.id]: value }));
     emitConsentEvent(value ? "consent_checkbox_checked" : "consent_checkbox_unchecked", {
@@ -169,6 +188,7 @@ export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: Con
 
   const handleOpenDocument = (document: LegalDocument) => {
     setSelectedDocumentId(document.id);
+    setIsDocumentViewerOpen(true);
     emitConsentEvent("legal_document_opened", {
       consentType: document.type,
       version: document.version,
@@ -342,19 +362,10 @@ export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: Con
             />
           ))}
 
-          {selectedDocument ? (
-            <LegalDocumentViewer
-              title={selectedDocument.title}
-              version={selectedDocument.version}
-              hashSha256={selectedDocument.hashSha256}
-              contentMarkdown={selectedDocument.contentMarkdown}
-              onViewed={() =>
-                emitConsentEvent("legal_document_scrolled", {
-                  consentType: selectedDocument.type,
-                })
-              }
-            />
-          ) : null}
+          <div className="rounded-2xl border border-labora-ui bg-white p-5 text-sm text-labora-gray">
+            Selecciona <span className="font-semibold text-labora-deep">Ver documento completo</span>{" "}
+            en cualquier consentimiento para abrir el texto legal oficial.
+          </div>
         </div>
 
         <ConsentSummaryPanel
@@ -380,6 +391,35 @@ export function ConsentPage({ nextUrl = "/cases/new", mode = "onboarding" }: Con
           {isSubmitting ? "Guardando..." : "Aceptar y continuar"}
         </button>
       </div>
+
+      {isDocumentViewerOpen && selectedDocument ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-labora-charcoal/55 p-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Documento legal ${selectedDocument.title}`}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsDocumentViewerOpen(false);
+            }
+          }}
+        >
+          <div className="max-h-[92vh] w-full max-w-4xl overflow-hidden">
+            <LegalDocumentViewer
+              title={selectedDocument.title}
+              version={selectedDocument.version}
+              hashSha256={selectedDocument.hashSha256}
+              contentMarkdown={selectedDocument.contentMarkdown}
+              onClose={() => setIsDocumentViewerOpen(false)}
+              onViewed={() =>
+                emitConsentEvent("legal_document_scrolled", {
+                  consentType: selectedDocument.type,
+                })
+              }
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
