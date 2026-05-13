@@ -13,7 +13,7 @@ const items = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/perfil", label: "Perfil", icon: UserRound },
   { href: "/app/perfil/seguridad", label: "Seguridad", icon: LockKeyhole },
-  { href: "/consentimientos", label: "Consentimientos", icon: ShieldCheck },
+  { href: "/app/onboarding/consentimientos", label: "Consentimientos", icon: ShieldCheck },
 ];
 
 export function AppAccountLayout({ children }: { children: ReactNode }) {

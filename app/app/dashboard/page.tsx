@@ -28,7 +28,7 @@ export default function AppDashboardPage() {
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/consentimientos"
+                href="/app/onboarding/consentimientos"
                 className="inline-flex min-h-11 items-center justify-center rounded-lg bg-labora-green px-5 py-3 text-sm font-semibold text-white hover:bg-labora-deep"
               >
                 Continuar a consentimientos

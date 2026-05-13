@@ -3,7 +3,7 @@ import Link from "next/link";
 const items = [
   ["/dashboard", "Dashboard"],
   ["/cases", "Casos"],
-  ["/consentimientos", "Consentimientos"],
+  ["/app/onboarding/consentimientos", "Consentimientos"],
 ];
 
 export function AppSidebar() {

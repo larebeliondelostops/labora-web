@@ -42,6 +42,30 @@ El frontend consume el backend desde `NEXT_PUBLIC_API_URL` y usa cookies HttpOnl
 con `credentials: "include"`. Los servicios estan en `services/` y no guardan
 tokens en `localStorage` ni `sessionStorage`.
 
+## Consentimientos y cumplimiento
+
+Rutas del modulo:
+
+```txt
+/app/onboarding/consentimientos
+/app/onboarding/consentimientos/exito
+/app/consentimientos
+/app/perfil/privacidad/consentimientos
+```
+
+Endpoints consumidos:
+
+```txt
+GET /legal-documents/current
+GET /users/me/consents/status
+POST /consents
+GET /users/me/consents
+```
+
+Los checkboxes no vienen preseleccionados y el CTA solo se habilita cuando el
+usuario marca todos los consentimientos obligatorios. El guard reusable esta en
+`hooks/useConsentGuard.ts`.
+
 ## Iconos Labora
 
 Los iconos exportados estan disponibles en:

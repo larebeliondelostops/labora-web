@@ -91,10 +91,10 @@ export function getNextAuthPath(nextStep?: string, email?: string): string {
   }
 
   if (nextStep === "consents") {
-    return "/consentimientos";
+    return "/app/onboarding/consentimientos";
   }
 
-  return "/consentimientos";
+  return "/app/onboarding/consentimientos";
 }
 
 export function getSafeNextAuthPath(value?: string | null): string | undefined {

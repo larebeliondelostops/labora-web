@@ -17,6 +17,17 @@ const errorMessages: Record<string, string> = {
   RATE_LIMITED: "Has hecho muchos intentos. Espera unos minutos.",
   TOKEN_EXPIRED: "El enlace vencio. Solicita uno nuevo.",
   TOKEN_INVALID: "El enlace no es valido. Solicita uno nuevo.",
+  unauthorized: "Tu sesion expiro. Inicia sesion nuevamente.",
+  legal_document_not_found:
+    "Uno de los documentos legales ya no esta disponible. Recarga la pagina.",
+  legal_document_not_active:
+    "Hay una nueva version del documento. Recarga para verla.",
+  consent_type_mismatch:
+    "Hubo un problema validando el consentimiento. Recarga e intenta de nuevo.",
+  missing_required_consents: "Faltan autorizaciones obligatorias para continuar.",
+  duplicate_consent: "Este consentimiento ya fue registrado. Actualizaremos tu estado.",
+  invalid_payload: "Revisa las autorizaciones seleccionadas e intenta de nuevo.",
+  internal_error: "No pudimos guardar tus autorizaciones. Intenta nuevamente.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
