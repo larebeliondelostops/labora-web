@@ -9,7 +9,8 @@ import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { TextInput, SelectInput } from "@/components/auth/FormField";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
-import { getApiErrorMessage, getApiFieldErrors } from "@/lib/auth-errors";
+import { ApiError } from "@/lib/api";
+import { getApiErrorCode, getApiErrorMessage, getApiFieldErrors } from "@/lib/auth-errors";
 import { cleanDocumentNumber, getNextAuthPath, normalizeEmail } from "@/lib/auth-validation";
 import { getMe, updateMe } from "@/services/user.service";
 import type { CurrentUser } from "@/types/user";
@@ -252,10 +253,23 @@ export function RegisterForm() {
 
       router.push(getNextAuthPath(refreshedUser.nextStep || "dashboard", refreshedUser.email));
     } catch (error) {
-      setFieldErrors(getApiFieldErrors(error));
-      setSubmitError(
-        getApiErrorMessage(error, "No pudimos guardar tus datos. Intentalo nuevamente."),
+      const message = getApiErrorMessage(
+        error,
+        "No pudimos guardar tus datos. Intentalo nuevamente.",
       );
+      const nextFieldErrors = getApiFieldErrors(error);
+      const code = getApiErrorCode(error);
+      const isDocumentConflict =
+        code === "DOCUMENT_ALREADY_EXISTS" ||
+        (error instanceof ApiError && error.status === 409);
+
+      if (isDocumentConflict && !nextFieldErrors.documentNumber) {
+        nextFieldErrors.documentNumber =
+          message || "Ya existe una cuenta asociada a este documento.";
+      }
+
+      setFieldErrors(nextFieldErrors);
+      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
