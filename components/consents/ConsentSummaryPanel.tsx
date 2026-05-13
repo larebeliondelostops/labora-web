@@ -10,6 +10,8 @@ interface ConsentSummaryPanelProps {
   status: ConsentComplianceStatus;
   canSubmit: boolean;
   isSubmitting?: boolean;
+  submitLabel?: string;
+  helperText?: string;
   onSubmit: () => void;
   onSave?: () => void;
 }
@@ -21,6 +23,8 @@ export function ConsentSummaryPanel({
   status,
   canSubmit,
   isSubmitting,
+  submitLabel = "Aceptar y continuar",
+  helperText = "Para continuar con tu expediente, debes completar estas autorizaciones.",
   onSubmit,
   onSave,
 }: ConsentSummaryPanelProps) {
@@ -70,7 +74,7 @@ export function ConsentSummaryPanel({
         onClick={onSubmit}
         className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-labora-green px-5 py-3 text-sm font-semibold text-white transition hover:bg-labora-deep focus:outline-none focus:ring-2 focus:ring-labora-green focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isSubmitting ? "Guardando..." : "Aceptar y continuar"}
+        {isSubmitting ? "Guardando..." : submitLabel}
       </button>
 
       {onSave ? (
@@ -83,9 +87,7 @@ export function ConsentSummaryPanel({
         </button>
       ) : null}
 
-      <p className="mt-4 text-xs leading-5 text-labora-gray">
-        Para continuar con tu expediente, debes completar estas autorizaciones.
-      </p>
+      <p className="mt-4 text-xs leading-5 text-labora-gray">{helperText}</p>
     </aside>
   );
 }

@@ -74,6 +74,20 @@ function getMissingTypes(documents: LegalDocument[], checked: Record<string, boo
     .map((document) => document.type);
 }
 
+function getCheckedFromStatus(
+  documents: LegalDocument[],
+  status: ConsentStatusResponse,
+) {
+  const acceptedTypes = new Set(status.acceptedConsentTypes || []);
+  const isAlreadyComplete = status.status === "completed" || status.canUploadDocuments;
+
+  return documents.reduce<Record<string, boolean>>((nextChecked, document) => {
+    nextChecked[document.id] =
+      acceptedTypes.has(document.type) || (isAlreadyComplete && document.isRequired);
+    return nextChecked;
+  }, {});
+}
+
 function getStatusFromSelection(
   documents: LegalDocument[],
   checked: Record<string, boolean>,
@@ -118,11 +132,12 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
     () => getMissingTypes(documents, checked),
     [checked, documents],
   );
+  const hasCompletedConsents = status.status === "completed" || status.canUploadDocuments;
   const visualStatus = getStatusFromSelection(documents, checked, status.status);
   const allRequiredSelected =
     requiredDocuments.length > 0 && acceptedRequiredCount === requiredDocuments.length;
   const canSubmit =
-    allRequiredSelected &&
+    (hasCompletedConsents || allRequiredSelected) &&
     !isLoading &&
     !isSubmitting &&
     status.status !== "requires_review" &&
@@ -142,7 +157,7 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
       setDocuments(nextDocuments);
       setStatus(nextStatus);
       setSelectedDocumentId(nextDocuments[0]?.id || null);
-      setChecked({});
+      setChecked(getCheckedFromStatus(nextDocuments, nextStatus));
       setShowMissing(false);
     } catch (error) {
       setLoadError(
@@ -199,6 +214,14 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
     setSubmitError(null);
     setShowMissing(true);
     emitConsentEvent("consents_submit_clicked");
+
+    if (hasCompletedConsents) {
+      emitConsentEvent("consents_submit_succeeded", {
+        status: status.status,
+      });
+      router.push(nextUrl);
+      return;
+    }
 
     if (!allRequiredSelected) {
       setSubmitError("Aun faltan autorizaciones obligatorias para continuar.");
@@ -355,7 +378,9 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
               hashSha256={document.hashSha256}
               checked={Boolean(checked[document.id])}
               required={document.isRequired}
-              disabled={isSubmitting || status.status === "requires_review"}
+              disabled={
+                isSubmitting || status.status === "requires_review" || hasCompletedConsents
+              }
               showMissing={showMissing}
               onChange={(value) => handleCheck(document, value)}
               onOpenDocument={() => handleOpenDocument(document)}
@@ -375,6 +400,12 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
           status={visualStatus}
           canSubmit={canSubmit}
           isSubmitting={isSubmitting}
+          submitLabel={hasCompletedConsents ? "Continuar" : "Aceptar y continuar"}
+          helperText={
+            hasCompletedConsents
+              ? "Tus autorizaciones vigentes ya estan completas. Puedes continuar al expediente."
+              : "Para continuar con tu expediente, debes completar estas autorizaciones."
+          }
           onSubmit={handleSubmit}
           onSave={() => router.push("/app/dashboard")}
         />
@@ -388,7 +419,7 @@ export function ConsentPage({ nextUrl = "/app/cases/new", mode = "onboarding" }:
           className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-labora-green px-5 py-3 text-sm font-semibold text-white hover:bg-labora-deep disabled:cursor-not-allowed disabled:opacity-60"
         >
           <CheckCircle2 className="h-4 w-4" />
-          {isSubmitting ? "Guardando..." : "Aceptar y continuar"}
+          {isSubmitting ? "Guardando..." : hasCompletedConsents ? "Continuar" : "Aceptar y continuar"}
         </button>
       </div>
 
