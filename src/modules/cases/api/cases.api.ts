@@ -144,6 +144,7 @@ function asNextAction(value: unknown, status: CaseStatus): CaseNextAction {
   const valid: CaseNextAction[] = [
     "complete_case",
     "upload_documents",
+    "start_preanalysis",
     "view_preanalysis",
     "unlock_full_analysis",
     "view_report",

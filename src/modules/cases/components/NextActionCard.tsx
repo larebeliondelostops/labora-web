@@ -14,15 +14,30 @@ export type NextActionCardProps = {
   caseId: string;
 };
 
+const actionAliases: Partial<Record<CaseNextAction, string[]>> = {
+  start_preanalysis: ["view_preanalysis", "continue_to_preanalysis"],
+  view_preanalysis: ["start_preanalysis"],
+};
+
+function isActionAllowed(action: CaseNextAction, allowedActions: string[]) {
+  if (allowedActions.length === 0) {
+    return true;
+  }
+
+  return (
+    allowedActions.includes(action) ||
+    actionAliases[action]?.some((alias) => allowedActions.includes(alias)) ||
+    false
+  );
+}
+
 export function NextActionCard({
   nextBestAction,
   allowedActions,
   caseId,
 }: NextActionCardProps) {
   const meta = nextActionMeta[nextBestAction];
-  const isDisabled =
-    nextBestAction === "none" ||
-    (allowedActions.length > 0 && !allowedActions.includes(nextBestAction));
+  const isDisabled = nextBestAction === "none" || !isActionAllowed(nextBestAction, allowedActions);
 
   return (
     <section className="rounded-2xl border border-labora-ui bg-labora-deep p-5 text-white shadow-panel">

@@ -43,6 +43,7 @@ export const situationTypeLabels: Record<SituationType, string> = {
 export const nextActionLabels: Record<CaseNextAction, string> = {
   complete_case: "Completar expediente",
   upload_documents: "Subir documentos",
+  start_preanalysis: "Continuar validacion preliminar",
   view_preanalysis: "Ver preanalisis",
   unlock_full_analysis: "Desbloquear analisis completo",
   view_report: "Ver informe",

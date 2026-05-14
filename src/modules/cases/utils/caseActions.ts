@@ -20,6 +20,11 @@ export const nextActionMeta: Record<CaseNextAction, NextActionMeta> = {
     description: "Tu expediente esta listo. Ahora puedes subir tu historia laboral y soportes.",
     href: (caseId) => `/app/cases/${caseId}/documents`,
   },
+  start_preanalysis: {
+    label: "Continuar validacion preliminar",
+    description: "Tus documentos fueron recibidos. Revisa la IA documental preliminar para continuar.",
+    href: (caseId) => `/app/cases/${caseId}/preanalysis`,
+  },
   view_preanalysis: {
     label: "Ver preanalisis",
     description: "Revisa el resultado preliminar preparado por Labora.",
@@ -117,6 +122,10 @@ export function deriveNextAction(status: CaseStatus): CaseNextAction {
 
   if (status === "ready_for_documents" || status === "documents_pending") {
     return "upload_documents";
+  }
+
+  if (status === "documents_uploaded" || status === "preanalysis_pending") {
+    return "start_preanalysis";
   }
 
   if (status === "preanalysis_ready") {
