@@ -4,11 +4,11 @@ import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
 import { CasePreanalysisPage } from "@/src/modules/cases/pages/CasePreanalysisPage";
 
 export const metadata: Metadata = {
-  title: "Preanalisis",
-  description: "Redireccion al modulo de resultado preliminar.",
+  title: "Resultado preliminar",
+  description: "Resultado documental preliminar del expediente.",
 };
 
-export default async function AppCasePreanalysisRoute({
+export default async function AppCaseResultsRoute({
   params,
 }: {
   params: Promise<{ caseId: string }>;

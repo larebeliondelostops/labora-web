@@ -70,7 +70,7 @@ export function DocumentPrecheckPage({
   }
 
   function continueToPreanalysis() {
-    router.push(`/app/cases/${caseId}/preanalysis`);
+    router.push(`/app/cases/${caseId}/results`);
   }
 
   async function requestReview() {
