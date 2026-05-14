@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
-import { CaseModuleRedirectPage } from "@/src/modules/cases/pages/CaseModuleRedirectPage";
+import { DocumentsPage } from "@/src/modules/documents/pages/DocumentsPage";
 
 export const metadata: Metadata = {
   title: "Documentos",
-  description: "Redireccion al modulo de carga documental.",
+  description: "Carga y gestion documental del expediente digital.",
 };
 
 export default async function AppCaseDocumentsRoute({
@@ -17,7 +17,7 @@ export default async function AppCaseDocumentsRoute({
 
   return (
     <CasesAppFrame>
-      <CaseModuleRedirectPage destination={`/cases/${caseId}/documents`} />
+      <DocumentsPage caseId={caseId} />
     </CasesAppFrame>
   );
 }
