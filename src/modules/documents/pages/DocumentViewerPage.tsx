@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileUp, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowLeft, FileSearch, FileUp, RotateCcw, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -141,8 +141,16 @@ export function DocumentViewerPage({
       <div className="mt-4 grid gap-3">
         <button
           type="button"
-          onClick={() => setReplaceOpen(true)}
+          onClick={() => router.push(`/app/cases/${caseId}/documents/${documentId}/precheck`)}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-labora-green px-5 py-3 text-sm font-semibold text-white transition hover:bg-labora-deep"
+        >
+          <FileSearch className="h-4 w-4" aria-hidden="true" />
+          Revisar con IA preliminar
+        </button>
+        <button
+          type="button"
+          onClick={() => setReplaceOpen(true)}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-labora-ui bg-white px-5 py-3 text-sm font-semibold text-labora-deep transition hover:bg-labora-ivory"
         >
           <FileUp className="h-4 w-4" aria-hidden="true" />
           Reemplazar documento

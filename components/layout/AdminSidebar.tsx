@@ -11,6 +11,9 @@ export function AdminSidebar() {
         <Link href="/admin/cases" className="block rounded-2xl px-3 py-2 hover:bg-labora-ivory">
           Expedientes
         </Link>
+        <Link href="/admin/document-precheck" className="block rounded-2xl px-3 py-2 hover:bg-labora-ivory">
+          Revision documental
+        </Link>
       </nav>
     </aside>
   );
