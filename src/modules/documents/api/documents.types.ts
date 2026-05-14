@@ -75,6 +75,7 @@ export interface CreateDocumentUploadResponse {
     id: string;
     method: "signed_url" | "multipart";
     uploadUrl?: string;
+    headers?: Record<string, string>;
     expiresAt?: string;
   };
 }

@@ -1,4 +1,5 @@
 import { ApiError, apiFetch, unwrapApiData } from "@/lib/api";
+import { publicEnv } from "@/lib/env";
 import type { ApiEnvelope } from "@/lib/api";
 import type {
   CreateDocumentUploadRequest,
@@ -100,6 +101,19 @@ function asStringArray(value: unknown): string[] {
     const text = asString(item);
     return text ? [text] : [];
   });
+}
+
+function asStringRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const entries = Object.entries(value).flatMap(([key, rawValue]) => {
+    const stringValue = asString(rawValue);
+    return stringValue ? [[key, stringValue] as const] : [];
+  });
+
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 function asDateString(value: unknown) {
@@ -385,6 +399,7 @@ function normalizeDocumentUploadResponse(raw: unknown): CreateDocumentUploadResp
         id: asString(data.upload.id) || "upload",
         method: uploadMethod,
         uploadUrl: asString(data.upload.uploadUrl) || asString(data.upload.upload_url),
+        headers: asStringRecord(data.upload.headers),
         expiresAt: asString(data.upload.expiresAt) || asString(data.upload.expires_at),
       }
     : undefined;
@@ -610,20 +625,29 @@ export function uploadFileToUrl({
   file,
   method,
   uploadUrl,
+  headers,
   signal,
   onProgress,
 }: {
   file: File;
   method?: "PUT" | "POST";
   uploadUrl: string;
+  headers?: Record<string, string>;
   signal?: AbortSignal;
   onProgress?: (progress: number) => void;
 }) {
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.open(method || "PUT", uploadUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+    xhr.open(method || "PUT", resolveUploadUrl(uploadUrl));
+    const requestHeaders = {
+      "Content-Type": file.type || "application/octet-stream",
+      ...headers,
+    };
+
+    Object.entries(requestHeaders).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
 
     xhr.upload.onprogress = (event) => {
       if (!event.lengthComputable) {
@@ -679,4 +703,16 @@ export function uploadFileToUrl({
 
     xhr.send(file);
   });
+}
+
+function resolveUploadUrl(uploadUrl: string) {
+  try {
+    return new URL(uploadUrl).toString();
+  } catch {
+    // Relative upload URLs should target the API host, not the Next.js origin.
+    return new URL(
+      uploadUrl,
+      uploadUrl.startsWith("/") ? publicEnv.apiUrl : `${publicEnv.apiUrl}/`,
+    ).toString();
+  }
 }

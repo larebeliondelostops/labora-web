@@ -215,7 +215,14 @@ async function uploadWithResponse({
   signal,
   onProgress,
 }: {
-  response: { document: DocumentItem; upload?: { method: "signed_url" | "multipart"; uploadUrl?: string } };
+  response: {
+    document: DocumentItem;
+    upload?: {
+      method: "signed_url" | "multipart";
+      uploadUrl?: string;
+      headers?: Record<string, string>;
+    };
+  };
   file: File;
   signal?: AbortSignal;
   onProgress?: (progress: number) => void;
@@ -225,6 +232,7 @@ async function uploadWithResponse({
       file,
       uploadUrl: response.upload.uploadUrl,
       method: response.upload.method === "multipart" ? "POST" : "PUT",
+      headers: response.upload.headers,
       signal,
       onProgress,
     });
