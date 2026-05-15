@@ -157,7 +157,11 @@ function decisionAllowsContinue(decision: DocumentPrecheckDecision | null) {
 }
 
 function decisionRequiresReupload(decision: DocumentPrecheckDecision | null) {
-  return decision === "requires_reupload" || decision === "unsupported" || decision === "failed";
+  return decision === "requires_reupload" || decision === "unsupported";
+}
+
+function decisionCanRetry(decision: DocumentPrecheckDecision | null) {
+  return decision === "failed";
 }
 
 function StatusIcon({ tone }: { tone: Tone }) {
@@ -325,6 +329,14 @@ export function TrafficLightCard({
   summary?: string;
 }) {
   const copy = trafficLightCopy[trafficLight];
+  const isTechnicalFailure = decision === "failed";
+  const displayTitle =
+    title || (isTechnicalFailure ? "No pudimos completar la revision" : copy.title);
+  const displayDescription =
+    summary ||
+    (isTechnicalFailure
+      ? "Ocurrio un error tecnico durante la clasificacion IA. Intenta nuevamente."
+      : copy.description);
 
   return (
     <section className={cn("rounded-2xl border p-5 shadow-panel", toneClasses[copy.tone])}>
@@ -335,9 +347,9 @@ export function TrafficLightCard({
           </span>
           <div>
             <h2 className="font-heading text-xl font-semibold">
-              {title || copy.title}
+              {displayTitle}
             </h2>
-            <p className="mt-1 text-sm leading-6">{summary || copy.description}</p>
+            <p className="mt-1 text-sm leading-6">{displayDescription}</p>
             {decision === "requires_human_review" ? (
               <p className="mt-2 text-sm font-semibold">
                 El sistema no pudo validar el documento con suficiente confianza.
@@ -698,6 +710,7 @@ export function PrecheckActions({
 }) {
   const canContinue = status === "completed" && decisionAllowsContinue(decision);
   const canReupload = status === "blocked" || decisionRequiresReupload(decision);
+  const canRetry = status === "error" || decisionCanRetry(decision);
   const canRequestReview =
     status === "requires_review" || decision === "requires_human_review";
 
@@ -716,6 +729,17 @@ export function PrecheckActions({
           >
             {isStarting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileSearch className="h-4 w-4" aria-hidden="true" />}
             Iniciar revision automatica
+          </button>
+        ) : null}
+        {canRetry && onStart ? (
+          <button
+            type="button"
+            onClick={onStart}
+            disabled={isStarting}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-labora-green px-5 py-3 text-sm font-semibold text-white transition hover:bg-labora-deep focus:outline-none focus:ring-2 focus:ring-labora-green focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isStarting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCcw className="h-4 w-4" aria-hidden="true" />}
+            Intentar de nuevo
           </button>
         ) : null}
         <button
@@ -758,7 +782,9 @@ export function PrecheckActions({
       </div>
       {!canContinue && status !== "not_started" ? (
         <p className="mt-3 text-sm leading-6 text-labora-gray">
-          El avance se habilita cuando el backend confirme que el documento es apto.
+          {canRetry
+            ? "El avance se habilita cuando la clasificacion IA termine correctamente."
+            : "El avance se habilita cuando el backend confirme que el documento es apto."}
         </p>
       ) : null}
     </section>

@@ -107,7 +107,6 @@ export function DocumentPrecheckPage({
   const requiresReupload =
     precheck.data?.decision === "requires_reupload" ||
     precheck.data?.decision === "unsupported" ||
-    precheck.data?.decision === "failed" ||
     currentStatus === "blocked";
 
   return (
@@ -191,6 +190,11 @@ export function DocumentPrecheckPage({
                 onAction={(issue) => {
                   if (issue.suggestedAction?.includes("upload")) {
                     reuploadDocument();
+                    return;
+                  }
+
+                  if (issue.suggestedAction === "wait_and_retry") {
+                    precheck.start(true);
                   }
                 }}
               />
@@ -214,6 +218,8 @@ export function DocumentPrecheckPage({
                 onReupload={reuploadDocument}
                 onRequestReview={requestReview}
                 onBack={backToDocuments}
+                onStart={() => precheck.start(true)}
+                isStarting={precheck.isStarting}
               />
             </aside>
           </div>
