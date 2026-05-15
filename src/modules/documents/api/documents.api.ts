@@ -571,7 +571,7 @@ export async function getDocumentViewUrl(
   }
 
   return {
-    url: asString(data.url) || "",
+    url: resolveDocumentViewUrl(asString(data.url) || ""),
     expiresInSeconds:
       asNumber(data.expiresInSeconds) ?? asNumber(data.expires_in_seconds) ?? 0,
   };
@@ -714,5 +714,27 @@ function resolveUploadUrl(uploadUrl: string) {
       uploadUrl,
       uploadUrl.startsWith("/") ? publicEnv.apiUrl : `${publicEnv.apiUrl}/`,
     ).toString();
+  }
+}
+
+function resolveDocumentViewUrl(viewUrl: string) {
+  if (!viewUrl) {
+    return "";
+  }
+
+  const apiBase = new URL(`${publicEnv.apiUrl}/`);
+
+  try {
+    const parsed = new URL(viewUrl, apiBase);
+    const isLocalhost =
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+
+    if (isLocalhost) {
+      return new URL(`${parsed.pathname}${parsed.search}${parsed.hash}`, apiBase.origin).toString();
+    }
+
+    return parsed.toString();
+  } catch {
+    return viewUrl;
   }
 }
