@@ -1198,7 +1198,7 @@ export function QuestionnaireCompletedState({
   profile?: CaseProfilePreview;
   caseId: string;
 }) {
-  const nextHref = result?.nextStep?.href || `/app/cases/${caseId}/preanalysis`;
+  const nextHref = result?.nextStep?.href || `/app/cases/${caseId}/pre-analysis`;
   const nextLabel = result?.nextStep?.label || "Continuar al preanalisis";
 
   return (

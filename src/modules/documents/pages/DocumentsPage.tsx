@@ -132,7 +132,7 @@ export function DocumentsPage({ caseId }: { caseId: string }) {
         <div className="space-y-5">
           <DocumentReadinessCard
             readiness={readiness.data}
-            ctaHref={`/app/cases/${caseId}/preanalysis`}
+            ctaHref={`/app/cases/${caseId}/pre-analysis`}
           />
 
           <section
@@ -280,7 +280,7 @@ export function DocumentsPage({ caseId }: { caseId: string }) {
       />
 
       <Link
-        href={`/app/cases/${caseId}/preanalysis`}
+        href={`/app/cases/${caseId}/pre-analysis`}
         aria-disabled={!canContinue}
         className={
           canContinue

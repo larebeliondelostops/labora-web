@@ -23,12 +23,12 @@ export const nextActionMeta: Record<CaseNextAction, NextActionMeta> = {
   start_preanalysis: {
     label: "Continuar validacion preliminar",
     description: "Tus documentos fueron recibidos. Revisa la IA documental preliminar para continuar.",
-    href: (caseId) => `/app/cases/${caseId}/preanalysis`,
+    href: (caseId) => `/app/cases/${caseId}/pre-analysis`,
   },
   view_preanalysis: {
     label: "Ver preanalisis",
     description: "Revisa el resultado preliminar preparado por Labora.",
-    href: (caseId) => `/app/cases/${caseId}/preanalysis`,
+    href: (caseId) => `/app/cases/${caseId}/pre-analysis`,
   },
   unlock_full_analysis: {
     label: "Desbloquear analisis completo",

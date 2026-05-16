@@ -354,7 +354,7 @@ export function ExtractionPage({ caseId }: { caseId: string }) {
       setConfirmModalOpen(false);
 
       if (result.nextStep === "preliminary_analysis" || result.nextStep === "preanalysis") {
-        router.push(`/app/cases/${caseId}/preanalysis`);
+        router.push(`/app/cases/${caseId}/pre-analysis`);
         return;
       }
 
