@@ -35,6 +35,11 @@ export const nextActionMeta: Record<CaseNextAction, NextActionMeta> = {
     description: "Activa el analisis completo, informes y calculos disponibles.",
     href: (caseId) => `/app/cases/${caseId}/checkout`,
   },
+  start_full_analysis: {
+    label: "Iniciar analisis completo",
+    description: "Ejecuta reglas, calculos, escenarios y confianza del expediente.",
+    href: (caseId) => `/app/cases/${caseId}/full-analysis`,
+  },
   view_report: {
     label: "Ver informe",
     description: "Consulta el informe completo de tu expediente.",
@@ -43,7 +48,7 @@ export const nextActionMeta: Record<CaseNextAction, NextActionMeta> = {
   request_review: {
     label: "Solicitar revision profesional",
     description: "Pide que un profesional revise el expediente.",
-    href: (caseId) => `/app/cases/${caseId}/history`,
+    href: (caseId) => `/app/cases/${caseId}/professional-review`,
   },
   none: {
     label: "Sin acciones pendientes",
@@ -134,6 +139,10 @@ export function deriveNextAction(status: CaseStatus): CaseNextAction {
 
   if (status === "preview_locked") {
     return "unlock_full_analysis";
+  }
+
+  if (status === "paid_unlocked" || status === "analysis_in_progress") {
+    return "start_full_analysis";
   }
 
   if (status === "completed") {

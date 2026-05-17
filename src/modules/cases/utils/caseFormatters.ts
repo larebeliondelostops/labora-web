@@ -46,6 +46,7 @@ export const nextActionLabels: Record<CaseNextAction, string> = {
   start_preanalysis: "Continuar validacion preliminar",
   view_preanalysis: "Ver preanalisis",
   unlock_full_analysis: "Desbloquear analisis completo",
+  start_full_analysis: "Iniciar analisis completo",
   view_report: "Ver informe",
   request_review: "Solicitar revision profesional",
   none: "Sin acciones pendientes",

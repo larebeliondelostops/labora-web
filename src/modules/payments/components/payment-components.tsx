@@ -503,7 +503,7 @@ export function OrderSummaryCard({
 
       <div className="mt-5 grid gap-3">
         {isUnlocked ? (
-          <ButtonLink href={`/app/cases/${caseId}/results`} variant="secondary">
+          <ButtonLink href={`/app/cases/${caseId}/full-analysis`} variant="secondary">
             Ir al analisis completo
           </ButtonLink>
         ) : (
@@ -814,7 +814,7 @@ export function PaymentStateCard({
 
       <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
         {flow.isUnlocked ? (
-          <ButtonLink href={`/app/cases/${flow.caseId}/results`}>
+          <ButtonLink href={`/app/cases/${flow.caseId}/full-analysis`}>
             Ver analisis completo
           </ButtonLink>
         ) : null}
@@ -928,7 +928,7 @@ export function ReceiptCard({
           </PaymentActionButton>
         )}
         {isUnlocked ? (
-          <ButtonLink href={`/app/cases/${caseId}/results`} variant="secondary">
+          <ButtonLink href={`/app/cases/${caseId}/full-analysis`} variant="secondary">
             Volver al analisis completo
           </ButtonLink>
         ) : (

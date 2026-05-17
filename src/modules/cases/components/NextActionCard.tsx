@@ -17,6 +17,7 @@ export type NextActionCardProps = {
 const actionAliases: Partial<Record<CaseNextAction, string[]>> = {
   start_preanalysis: ["view_preanalysis", "continue_to_preanalysis"],
   view_preanalysis: ["start_preanalysis"],
+  start_full_analysis: ["view_full_analysis", "run_full_analysis"],
 };
 
 function isActionAllowed(action: CaseNextAction, allowedActions: string[]) {

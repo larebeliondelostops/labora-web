@@ -188,7 +188,7 @@ export function PaymentUnlockPage({ caseId }: { caseId: string }) {
         caseId,
         ...makePaymentPayload(flow),
       });
-      router.prefetch(`/app/cases/${caseId}/results`);
+      router.prefetch(`/app/cases/${caseId}/full-analysis`);
     }
 
     if (flow.caseStatus === "payment_rejected") {

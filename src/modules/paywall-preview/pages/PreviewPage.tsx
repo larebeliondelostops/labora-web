@@ -29,7 +29,7 @@ function toFeatureKey(value: string) {
 }
 
 function getAnalysisHref(caseId: string) {
-  return `/app/cases/${caseId}/results`;
+  return `/app/cases/${caseId}/full-analysis`;
 }
 
 export function PreviewPage({ caseId }: { caseId: string }) {

@@ -147,6 +147,7 @@ function asNextAction(value: unknown, status: CaseStatus): CaseNextAction {
     "start_preanalysis",
     "view_preanalysis",
     "unlock_full_analysis",
+    "start_full_analysis",
     "view_report",
     "request_review",
     "none",

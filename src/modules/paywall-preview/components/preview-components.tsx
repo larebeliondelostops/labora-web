@@ -1073,7 +1073,7 @@ export function PreviewStateView({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {caseId ? (
             <>
-              <ButtonLink href={`/app/cases/${caseId}/results`}>
+              <ButtonLink href={`/app/cases/${caseId}/full-analysis`}>
                 <FileSearch className="h-4 w-4" aria-hidden="true" />
                 Ver analisis completo
               </ButtonLink>
