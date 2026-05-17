@@ -23,6 +23,8 @@ export type PreAnalysisCtaType =
   | "upload_missing_docs"
   | "wait_review";
 
+export type PreAnalysisReviewReasonCode = "low_confidence" | "human_review";
+
 export type BlockedReason =
   | "missing_consent"
   | "missing_main_document"
@@ -63,6 +65,20 @@ export interface PreAnalysisWarningDto {
   message: string;
 }
 
+export interface PreAnalysisReviewGuidanceActionDto {
+  code: string;
+  label: string;
+  description: string;
+}
+
+export interface PreAnalysisReviewGuidanceDto {
+  reasonCode: PreAnalysisReviewReasonCode;
+  title: string;
+  message: string;
+  confidenceThreshold?: number;
+  actions: PreAnalysisReviewGuidanceActionDto[];
+}
+
 export interface PreAnalysisResultDto {
   id: string;
   caseId: string;
@@ -83,6 +99,7 @@ export interface PreAnalysisResultDto {
   missingDocuments: MissingDocumentDto[];
   cta?: PreAnalysisCtaDto;
   warnings: PreAnalysisWarningDto[];
+  reviewGuidance?: PreAnalysisReviewGuidanceDto;
   blockedReason?: BlockedReason;
   canRetry?: boolean;
   createdAt?: string;

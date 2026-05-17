@@ -9,6 +9,9 @@ import type {
   PreAnalysisCtaDto,
   PreAnalysisCtaType,
   PreAnalysisResultDto,
+  PreAnalysisReviewGuidanceActionDto,
+  PreAnalysisReviewGuidanceDto,
+  PreAnalysisReviewReasonCode,
   PreAnalysisStatus,
   PreAnalysisStatusDto,
   PreIssueDto,
@@ -50,6 +53,10 @@ const ctaTypes: PreAnalysisCtaType[] = [
   "unlock_full_analysis",
   "upload_missing_docs",
   "wait_review",
+];
+const reviewReasonCodes: PreAnalysisReviewReasonCode[] = [
+  "low_confidence",
+  "human_review",
 ];
 const blockedReasons: BlockedReason[] = [
   "missing_consent",
@@ -322,6 +329,69 @@ function normalizeCta(value: unknown): PreAnalysisCtaDto | undefined {
   };
 }
 
+function normalizeReviewReasonCode(value: unknown): PreAnalysisReviewReasonCode {
+  const reasonCode = asString(value);
+  return reasonCode && reviewReasonCodes.includes(reasonCode as PreAnalysisReviewReasonCode)
+    ? (reasonCode as PreAnalysisReviewReasonCode)
+    : "human_review";
+}
+
+function normalizeReviewGuidanceAction(
+  raw: unknown,
+): PreAnalysisReviewGuidanceActionDto[] {
+  if (!isRecord(raw)) {
+    return [];
+  }
+
+  const label = asString(raw.label);
+  const description = asString(raw.description);
+
+  if (!label || !description) {
+    return [];
+  }
+
+  return [
+    {
+      code: asString(raw.code) || label.toLowerCase().replace(/\s+/g, "_"),
+      label,
+      description,
+    },
+  ];
+}
+
+function normalizeReviewGuidanceActions(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap(normalizeReviewGuidanceAction);
+}
+
+function normalizeReviewGuidance(
+  value: unknown,
+): PreAnalysisReviewGuidanceDto | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const title = asString(value.title);
+  const message = asString(value.message);
+
+  if (!title || !message) {
+    return undefined;
+  }
+
+  return {
+    reasonCode: normalizeReviewReasonCode(value.reasonCode ?? value.reason_code),
+    title,
+    message,
+    confidenceThreshold: asNumber(
+      value.confidenceThreshold ?? value.confidence_threshold,
+    ),
+    actions: normalizeReviewGuidanceActions(value.actions),
+  };
+}
+
 export function normalizePreAnalysisResult(
   raw: unknown,
   fallbackCaseId: string,
@@ -379,6 +449,9 @@ export function normalizePreAnalysisResult(
     ),
     cta: normalizeCta(data.cta),
     warnings: normalizeWarnings(data.warnings),
+    reviewGuidance: normalizeReviewGuidance(
+      data.reviewGuidance ?? data.review_guidance,
+    ),
     blockedReason: normalizeBlockedReason(data.blockedReason ?? data.blocked_reason),
     canRetry: asBoolean(data.canRetry) ?? asBoolean(data.can_retry),
     createdAt: asString(data.createdAt) || asString(data.created_at),

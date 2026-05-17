@@ -17,7 +17,6 @@ import {
   ListChecks,
   Loader2,
   LockKeyhole,
-  MessageCircle,
   RefreshCcw,
   Scale,
   SearchCheck,
@@ -37,6 +36,8 @@ import type {
   MissingDocumentPriority,
   PreAnalysisCtaDto,
   PreAnalysisResultDto,
+  PreAnalysisReviewGuidanceDto,
+  PreAnalysisWarningDto,
   PreAnalysisStatus,
   PreIssueDto,
   TrafficLight,
@@ -198,8 +199,110 @@ const blockedReasonCopy: Record<
   },
 };
 
-function formatPercent(value?: number) {
-  if (value === undefined || Number.isNaN(value)) {
+const reviewFallbackCopy = {
+  title: "Tu preanalisis necesita una revision adicional",
+  message:
+    "Estamos revisando la informacion disponible. Puedes ayudar agregando documentos claros y completando los datos clave del caso.",
+};
+
+function normalizeComparableText(value?: string) {
+  return (value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getReviewActionHref(code: string, caseId: string) {
+  const normalizedCode = normalizeComparableText(code);
+
+  if (
+    normalizedCode.includes("questionnaire") ||
+    normalizedCode.includes("pregunta") ||
+    normalizedCode.includes("cuestionario")
+  ) {
+    return `/app/cases/${caseId}/questionnaire`;
+  }
+
+  if (
+    normalizedCode.includes("document") ||
+    normalizedCode.includes("soporte") ||
+    normalizedCode.includes("upload") ||
+    normalizedCode.includes("carga")
+  ) {
+    return `/app/cases/${caseId}/documents`;
+  }
+
+  if (
+    normalizedCode.includes("case") ||
+    normalizedCode.includes("expediente") ||
+    normalizedCode.includes("data") ||
+    normalizedCode.includes("dato")
+  ) {
+    return `/app/cases/${caseId}/edit`;
+  }
+
+  return undefined;
+}
+
+function getReviewPrimaryHref(
+  caseId: string,
+  guidance?: PreAnalysisReviewGuidanceDto,
+) {
+  const actionHref = guidance?.actions
+    .map((action) => getReviewActionHref(action.code, caseId))
+    .find(Boolean);
+
+  return actionHref || `/app/cases/${caseId}/documents`;
+}
+
+function isDuplicateReviewWarning(
+  warning: PreAnalysisWarningDto,
+  guidance?: PreAnalysisReviewGuidanceDto,
+) {
+  if (!guidance) {
+    return false;
+  }
+
+  const warningMessage = normalizeComparableText(warning.message);
+  const guidanceTitle = normalizeComparableText(guidance.title);
+  const guidanceMessage = normalizeComparableText(guidance.message);
+
+  return [guidanceTitle, guidanceMessage].some(
+    (text) =>
+      text &&
+      warningMessage &&
+      (text === warningMessage ||
+        text.includes(warningMessage) ||
+        warningMessage.includes(text)),
+  );
+}
+
+function getVisibleReviewWarnings(result: PreAnalysisResultDto) {
+  return result.warnings.filter(
+    (warning) => !isDuplicateReviewWarning(warning, result.reviewGuidance),
+  );
+}
+
+function shouldShowLowConfidenceHint(guidance?: PreAnalysisReviewGuidanceDto) {
+  if (guidance?.reasonCode !== "low_confidence") {
+    return false;
+  }
+
+  const text = normalizeComparableText(`${guidance.title} ${guidance.message}`);
+  const mentionsConfidence = text.includes("confianza");
+  const mentionsMissingInfo =
+    text.includes("informacion") ||
+    text.includes("documento") ||
+    text.includes("soporte") ||
+    text.includes("dato");
+
+  return !(mentionsConfidence && mentionsMissingInfo);
+}
+
+function formatPercent(value?: number | null) {
+  if (value === undefined || value === null || Number.isNaN(value)) {
     return "No disponible";
   }
 
@@ -282,8 +385,8 @@ function IconBadge({
   );
 }
 
-export function ConfidenceBadge({ confidence }: { confidence?: number }) {
-  if (confidence === undefined) {
+export function ConfidenceBadge({ confidence }: { confidence?: number | null }) {
+  if (confidence === undefined || confidence === null) {
     return null;
   }
 
@@ -496,7 +599,7 @@ export function TrafficLightCard({
   confidence,
 }: {
   trafficLight?: TrafficLight;
-  confidence?: number;
+  confidence?: number | null;
 }) {
   const copy = trafficLightCopy[trafficLight];
 
@@ -1004,41 +1107,140 @@ export function PreAnalysisBlockedState({
   );
 }
 
-export function PreAnalysisReviewState({ caseId }: { caseId: string }) {
+export function PreAnalysisReviewState({
+  caseId,
+  result,
+}: {
+  caseId: string;
+  result: PreAnalysisResultDto;
+}) {
+  const guidance = result.reviewGuidance;
+  const title = guidance?.title || reviewFallbackCopy.title;
+  const message = guidance?.message || reviewFallbackCopy.message;
+  const isLowConfidence = guidance?.reasonCode === "low_confidence";
+  const primaryHref = getReviewPrimaryHref(caseId, guidance);
+  const documentsHref = `/app/cases/${caseId}/documents`;
+  const questionnaireHref = `/app/cases/${caseId}/questionnaire`;
+  const editHref = `/app/cases/${caseId}/edit`;
+  const visibleWarnings = getVisibleReviewWarnings(result);
+
   return (
-    <section className="rounded-2xl border border-labora-mint bg-white p-6 shadow-panel">
-      <div className="flex gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-labora-mint/20 text-labora-deep">
-          <ShieldCheck className="h-6 w-6" aria-hidden="true" />
-        </span>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-labora-green">
-            Revision adicional
-          </p>
-          <h1 className="mt-2 font-heading text-2xl font-semibold text-labora-charcoal">
-            Tu preanalisis necesita una revision adicional
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-labora-gray">
-            Algunas senales no tienen suficiente confianza automatica. Nuestro
-            sistema lo dejo marcado para revision antes de mostrarte una
-            conclusion preliminar.
+    <section className="space-y-5">
+      <section className="rounded-2xl border border-labora-mint bg-white p-6 shadow-panel">
+        <div className="flex gap-3">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-labora-mint/20 text-labora-deep">
+            {isLowConfidence ? (
+              <SearchCheck className="h-6 w-6" aria-hidden="true" />
+            ) : (
+              <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+            )}
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-labora-green">
+              {isLowConfidence ? "Informacion por completar" : "Revision adicional"}
+            </p>
+            <h1 className="mt-2 font-heading text-2xl font-semibold text-labora-charcoal">
+              {title}
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-labora-gray">
+              {message}
+            </p>
+            {shouldShowLowConfidenceHint(guidance) ? (
+              <p className="mt-3 max-w-3xl rounded-xl border border-labora-mint bg-labora-mint/10 p-3 text-sm leading-6 text-labora-deep">
+                Agregar documentos claros y completar datos clave ayuda a
+                aumentar la confianza del preanalisis.
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <ButtonLink href={primaryHref}>
+            <ListChecks className="h-4 w-4" aria-hidden="true" />
+            Completar informacion del caso
+          </ButtonLink>
+          {primaryHref !== documentsHref ? (
+            <ButtonLink href={documentsHref} variant="secondary">
+              <FileUp className="h-4 w-4" aria-hidden="true" />
+              Subir documentos
+            </ButtonLink>
+          ) : null}
+          {primaryHref !== questionnaireHref ? (
+            <ButtonLink href={questionnaireHref} variant="secondary">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              Completar cuestionario
+            </ButtonLink>
+          ) : null}
+          {primaryHref !== editHref ? (
+            <ButtonLink href={editHref} variant="secondary">
+              <FileText className="h-4 w-4" aria-hidden="true" />
+              Editar expediente
+            </ButtonLink>
+          ) : null}
+          <ButtonLink href={`/app/cases/${caseId}`} variant="ghost">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Volver al expediente
+          </ButtonLink>
+        </div>
+      </section>
+
+      {guidance?.actions.length ? (
+        <section className="rounded-2xl border border-labora-ui bg-white p-5 shadow-panel">
+          <div className="flex gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-labora-ivory text-labora-green">
+              <ListChecks className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-heading text-lg font-semibold text-labora-charcoal">
+                Pasos recomendados
+              </h2>
+              <ol className="mt-3 grid gap-3">
+                {guidance.actions.map((action, index) => (
+                  <li
+                    key={`${action.code}-${index}`}
+                    className="flex gap-3 rounded-xl border border-labora-ui bg-labora-ivory/60 p-3"
+                  >
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-labora-green" aria-hidden="true" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-labora-charcoal">
+                        {action.label}
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-labora-gray">
+                        {action.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {visibleWarnings.length ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 shadow-panel">
+          <h2 className="font-heading text-lg font-semibold">
+            Advertencias del preanalisis
+          </h2>
+          <ul className="mt-3 grid gap-2 text-sm leading-6">
+            {visibleWarnings.map((warning, index) => (
+              <li key={`${warning.code}-${index}`} className="flex gap-2">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                {warning.message}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className="rounded-2xl border border-labora-ui bg-labora-ivory p-5 text-sm leading-6 text-labora-gray">
+        <div className="flex gap-3">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-labora-green" aria-hidden="true" />
+          <p>
+            Puedes volver a intentar el preanalisis cuando agregues o actualices
+            la informacion del expediente.
           </p>
         </div>
-      </div>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href={`/app/cases/${caseId}`} variant="secondary">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Volver al expediente
-        </ButtonLink>
-        <ButtonLink href={`/app/cases/${caseId}/documents`}>
-          <FileUp className="h-4 w-4" aria-hidden="true" />
-          Subir mas documentos
-        </ButtonLink>
-        <ButtonLink href="/contacto" variant="secondary">
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
-          Contactar soporte
-        </ButtonLink>
-      </div>
+      </section>
     </section>
   );
 }
@@ -1223,7 +1425,7 @@ export function PreAnalysisStatusGuard({
   }
 
   if (result.status === "requires_review") {
-    return <PreAnalysisReviewState caseId={caseId} />;
+    return <PreAnalysisReviewState caseId={caseId} result={result} />;
   }
 
   return (
