@@ -449,6 +449,8 @@ export function getPreAnalysisErrorMessage(error: unknown) {
         "Aun estamos preparando la informacion del expediente.",
       PRE_ANALYSIS_FAILED:
         "No pudimos generar el preanalisis. Intentalo nuevamente.",
+      CASE_VALIDATION_ERROR:
+        "No pudimos iniciar el preanalisis con la informacion enviada. Revisa que el expediente tenga documentos y preguntas requeridas.",
       AI_SERVICE_UNAVAILABLE:
         "El servicio de analisis no esta disponible en este momento.",
     };
@@ -504,6 +506,7 @@ export async function startPreAnalysis(caseId: string): Promise<PreAnalysisResul
     legacyResultEndpoint(caseId),
     {
       method: "POST",
+      body: JSON.stringify({}),
     },
   );
 
@@ -523,6 +526,7 @@ export async function retryPreAnalysis(caseId: string): Promise<PreAnalysisResul
     legacyRetryEndpoint(caseId),
     {
       method: "POST",
+      body: JSON.stringify({}),
     },
   );
 
