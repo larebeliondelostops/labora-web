@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
-import { PreAnalysisLockedPreviewPage } from "@/src/modules/preanalysis/pages/PreAnalysisLockedPreviewPage";
+import { PreviewPage } from "@/src/modules/paywall-preview/pages/PreviewPage";
 
 export const metadata: Metadata = {
-  title: "Vista previa bloqueada",
-  description: "Vista previa bloqueada del analisis completo.",
+  title: "Vista previa del resultado",
+  description: "Vista previa limitada y paywall del analisis completo.",
 };
 
 export default async function AppCasePreviewRoute({
@@ -17,7 +17,7 @@ export default async function AppCasePreviewRoute({
 
   return (
     <CasesAppFrame>
-      <PreAnalysisLockedPreviewPage caseId={caseId} />
+      <PreviewPage caseId={caseId} />
     </CasesAppFrame>
   );
 }
