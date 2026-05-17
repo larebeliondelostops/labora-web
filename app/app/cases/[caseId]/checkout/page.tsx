@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
-import { CaseModuleRedirectPage } from "@/src/modules/cases/pages/CaseModuleRedirectPage";
+import { PaymentUnlockPage } from "@/src/modules/payments/pages/PaymentUnlockPage";
 
 export const metadata: Metadata = {
-  title: "Pago",
-  description: "Redireccion al modulo de pago.",
+  title: "Desbloquear analisis",
+  description: "Pago seguro para desbloquear el analisis completo del expediente.",
 };
 
 export default async function AppCaseCheckoutRoute({
@@ -17,7 +17,7 @@ export default async function AppCaseCheckoutRoute({
 
   return (
     <CasesAppFrame>
-      <CaseModuleRedirectPage destination={`/cases/${caseId}/payment`} />
+      <PaymentUnlockPage caseId={caseId} />
     </CasesAppFrame>
   );
 }

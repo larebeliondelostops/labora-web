@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function PaymentPage({
+export default async function AppCasePaymentCheckoutAliasRoute({
   params,
 }: {
   params: Promise<{ caseId: string }>;

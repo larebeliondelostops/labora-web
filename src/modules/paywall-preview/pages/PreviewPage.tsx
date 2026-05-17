@@ -15,103 +15,9 @@ import {
   PreviewHeader,
   PreviewStateView,
 } from "@/src/modules/paywall-preview/components/preview-components";
-import { useCheckoutSession } from "@/src/modules/paywall-preview/hooks/useCheckoutSession";
 import { useConversionEvents } from "@/src/modules/paywall-preview/hooks/useConversionEvents";
 import { usePreview } from "@/src/modules/paywall-preview/hooks/usePreview";
-import type {
-  CheckoutSessionResponse,
-  LockedFeature,
-} from "@/src/modules/paywall-preview/api/preview.types";
-
-const epaycoScriptSrc = "https://checkout.epayco.co/checkout-v2.js";
-
-type EpaycoCheckoutCallbacks = {
-  onCreated?: (response: unknown) => void;
-  onErrors?: (error: unknown) => void;
-  onClosed?: () => void;
-};
-
-type EpaycoCheckoutApi = {
-  configure?: (config: Record<string, unknown>) => EpaycoCheckoutApi | void;
-  open?: () => void;
-};
-
-declare global {
-  interface Window {
-    ePayco?: {
-      checkout?: EpaycoCheckoutApi;
-    };
-  }
-}
-
-let epaycoScriptPromise: Promise<void> | null = null;
-
-function loadEpaycoScript() {
-  if (typeof window === "undefined") {
-    return Promise.reject(new Error("Checkout no disponible en servidor."));
-  }
-
-  if (window.ePayco?.checkout) {
-    return Promise.resolve();
-  }
-
-  if (epaycoScriptPromise) {
-    return epaycoScriptPromise;
-  }
-
-  epaycoScriptPromise = new Promise<void>((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      `script[src="${epaycoScriptSrc}"]`,
-    );
-
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(), { once: true });
-      existingScript.addEventListener(
-        "error",
-        () => reject(new Error("No pudimos cargar ePayco.")),
-        { once: true },
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = epaycoScriptSrc;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("No pudimos cargar ePayco."));
-    document.body.appendChild(script);
-  });
-
-  return epaycoScriptPromise;
-}
-
-async function openEpaycoCheckout(
-  session: CheckoutSessionResponse,
-  callbacks: EpaycoCheckoutCallbacks,
-) {
-  await loadEpaycoScript();
-
-  const checkoutApi = window.ePayco?.checkout;
-
-  if (!checkoutApi?.configure) {
-    throw new Error("ePayco Smart Checkout no esta disponible.");
-  }
-
-  const configuredCheckout =
-    checkoutApi.configure({
-      sessionId: session.checkoutSessionId,
-      type: session.checkoutType || "onpage",
-      test: session.testMode,
-      ...callbacks,
-    }) || checkoutApi;
-  const open = configuredCheckout.open || checkoutApi.open;
-
-  if (!open) {
-    throw new Error("No pudimos abrir ePayco Smart Checkout.");
-  }
-
-  open.call(configuredCheckout);
-}
+import type { LockedFeature } from "@/src/modules/paywall-preview/api/preview.types";
 
 function toFeatureKey(value: string) {
   return value
@@ -130,13 +36,10 @@ export function PreviewPage({ caseId }: { caseId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preview = usePreview(caseId);
-  const checkout = useCheckoutSession(caseId);
   const { track } = useConversionEvents(caseId);
   const [featureHint, setFeatureHint] = useState<string | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const ctaRef = useRef<HTMLDivElement | null>(null);
   const paywallViewed = useRef(false);
-  const checkoutReturned = useRef(false);
   const checkoutReturnHandled = useRef(false);
 
   const data = preview.data;
@@ -174,7 +77,6 @@ export function PreviewPage({ caseId }: { caseId: string }) {
     }
 
     checkoutReturnHandled.current = true;
-    checkoutReturned.current = true;
     track("checkout_returned", {
       route: `/app/cases/${caseId}/preview`,
       isUnlocked: data?.isUnlocked ?? false,
@@ -220,9 +122,6 @@ export function PreviewPage({ caseId }: { caseId: string }) {
       return;
     }
 
-    setCheckoutError(null);
-    checkout.clearError();
-
     await track("preview_cta_clicked", {
       placement: "main_cta",
       route: `/app/cases/${caseId}/preview`,
@@ -233,39 +132,7 @@ export function PreviewPage({ caseId }: { caseId: string }) {
       route: `/app/cases/${caseId}/preview`,
     });
 
-    try {
-      const returnUrl = `${window.location.origin}/app/cases/${caseId}/preview?payment=return`;
-      const session = await checkout.startCheckout(returnUrl);
-
-      await openEpaycoCheckout(session, {
-        onCreated: () => {
-          setCheckoutError(null);
-        },
-        onErrors: (error) => {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "No pudimos abrir el checkout. Intentalo nuevamente.";
-          setCheckoutError(message);
-        },
-        onClosed: () => {
-          if (checkoutReturned.current) {
-            return;
-          }
-
-          track("unlock_abandoned", {
-            route: `/app/cases/${caseId}/preview`,
-            checkoutSessionId: session.checkoutSessionId,
-          });
-        },
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No pudimos iniciar el pago en este momento. Intentalo nuevamente.";
-      setCheckoutError(message);
-    }
+    router.push(`/app/cases/${caseId}/checkout`);
   }
 
   async function handleFeatureClick(feature: LockedFeature) {
@@ -484,15 +351,6 @@ export function PreviewPage({ caseId }: { caseId: string }) {
             </div>
           ) : null}
 
-          {(checkout.error || checkoutError) ? (
-            <div
-              aria-live="polite"
-              className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium leading-6 text-red-700"
-            >
-              {checkout.error || checkoutError}
-            </div>
-          ) : null}
-
           <div className="rounded-2xl border border-labora-ui bg-white p-5 shadow-panel">
             <div className="flex gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-labora-ivory text-labora-green">
@@ -515,7 +373,7 @@ export function PreviewPage({ caseId }: { caseId: string }) {
             label={data.cta.label}
             priceLabel={data.cta.priceLabel}
             disclaimer={data.cta.disclaimer}
-            isLoading={checkout.isSubmitting}
+            isLoading={false}
             onClick={handleCtaClick}
           />
         </aside>
