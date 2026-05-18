@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
-import { CaseModuleRedirectPage } from "@/src/modules/cases/pages/CaseModuleRedirectPage";
+import { LegalActionsPage } from "@/src/modules/legal-actions/pages/LegalActionsPage";
 
 export const metadata: Metadata = {
-  title: "Escritos",
-  description: "Redireccion al modulo de acciones juridicas.",
+  title: "Acciones juridicas",
+  description: "Selector de acciones juridicas y generacion de escritos.",
 };
 
 export default async function AppCaseLegalActionsRoute({
@@ -17,7 +17,7 @@ export default async function AppCaseLegalActionsRoute({
 
   return (
     <CasesAppFrame>
-      <CaseModuleRedirectPage destination={`/cases/${caseId}/legal-actions`} />
+      <LegalActionsPage caseId={caseId} />
     </CasesAppFrame>
   );
 }
