@@ -17,6 +17,9 @@ export function AdminSidebar() {
         <Link href="/admin/legal-drafts" className="block rounded-2xl px-3 py-2 hover:bg-labora-ivory">
           Borradores juridicos
         </Link>
+        <Link href="/backoffice/professional-reviews" className="block rounded-2xl px-3 py-2 hover:bg-labora-ivory">
+          Revision profesional
+        </Link>
       </nav>
     </aside>
   );

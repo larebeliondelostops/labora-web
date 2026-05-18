@@ -48,7 +48,7 @@ export const nextActionMeta: Record<CaseNextAction, NextActionMeta> = {
   request_review: {
     label: "Solicitar revision profesional",
     description: "Pide que un profesional revise el expediente.",
-    href: (caseId) => `/app/cases/${caseId}/professional-review`,
+    href: (caseId) => `/app/cases/${caseId}/professional-review/request`,
   },
   none: {
     label: "Sin acciones pendientes",
@@ -67,6 +67,7 @@ export const progressSteps = [
   { id: "analysis", label: "Analisis completo" },
   { id: "report", label: "Informe" },
   { id: "legal_actions", label: "Escritos" },
+  { id: "professional_review", label: "Revision profesional" },
   { id: "delivery", label: "Entrega final" },
 ] as const;
 
@@ -84,11 +85,11 @@ const statusProgressIndex: Record<CaseStatus, number> = {
   preview_locked: 5,
   paid_unlocked: 6,
   analysis_in_progress: 6,
-  completed: 9,
-  requires_review: 3,
+  completed: 10,
+  requires_review: 9,
   blocked: 0,
-  closed: 9,
-  archived: 9,
+  closed: 10,
+  archived: 10,
   error: 0,
 };
 

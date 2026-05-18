@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, BriefcaseBusiness, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { InlineAlert, SkeletonCard } from "@/components/auth/FormFeedback";
 import { ExportPanel } from "@/src/modules/legal-actions/components/ExportPanel";
 import { ProfessionalReviewBanner } from "@/src/modules/legal-actions/components/ProfessionalReviewBanner";
+import { ProfessionalReviewCTA } from "@/src/modules/professional-review/components/professional-review-components";
 import { useDraft, useDraftActions } from "@/src/modules/legal-actions/hooks/useLegalActions";
 import { draftStatusLabels } from "@/src/modules/legal-actions/utils/mapStatusToLabel";
 
@@ -27,15 +28,6 @@ export function DraftDeliveryPage({
     const updated = await actions.exportFile({ format });
     draftResource.setData(updated);
     setMessage("Estamos generando la exportacion. El historial se actualizara cuando este lista.");
-  }
-
-  async function handleSubmitReview() {
-    setMessage(null);
-    const updated = await actions.submitReview({
-      note: "Solicitud enviada desde entrega del borrador.",
-    });
-    draftResource.setData(updated);
-    setMessage("Solicitud de revision enviada.");
   }
 
   if (draftResource.isLoading) {
@@ -115,6 +107,17 @@ export function DraftDeliveryPage({
         isLoading={actions.isLoading}
       />
 
+      <ProfessionalReviewCTA
+        caseId={caseId}
+        targetType="legal_draft"
+        targetId={draft.id}
+        recommended={
+          draft.professional_review_level === "recommended" ||
+          draft.professional_review_level === "mandatory"
+        }
+        requiresReview={draft.professional_review_level === "mandatory"}
+      />
+
       <div className="grid gap-5 xl:grid-cols-2">
         <section className="rounded-2xl border border-labora-ui bg-white p-5 shadow-panel">
           <h2 className="font-heading text-lg font-semibold text-labora-charcoal">
@@ -144,31 +147,6 @@ export function DraftDeliveryPage({
           </div>
         </section>
       </div>
-
-      <section className="rounded-2xl border border-labora-green/25 bg-labora-mint/25 p-5 shadow-panel">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-3">
-            <BriefcaseBusiness className="mt-1 h-5 w-5 shrink-0 text-labora-deep" aria-hidden="true" />
-            <div>
-              <h2 className="font-heading text-lg font-semibold text-labora-charcoal">
-                Revision profesional
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-labora-gray">
-                Un abogado puede revisar este borrador para convertirlo en una version final mas segura.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleSubmitReview}
-            disabled={actions.isLoading}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-labora-green px-4 py-2 text-sm font-semibold text-white disabled:bg-slate-300"
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            Solicitar revision
-          </button>
-        </div>
-      </section>
     </section>
   );
 }

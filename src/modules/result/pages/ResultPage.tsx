@@ -24,6 +24,7 @@ import { InconsistencyMatrix } from "@/src/modules/result/components/Inconsisten
 import { LegalDisclaimerAlert } from "@/src/modules/result/components/LegalDisclaimerAlert";
 import { MainInconsistencyCard } from "@/src/modules/result/components/MainInconsistencyCard";
 import { MissingDocumentsList } from "@/src/modules/result/components/MissingDocumentsList";
+import { ProfessionalReviewCTA } from "@/src/modules/professional-review/components/professional-review-components";
 import { RecommendedRoutePanel } from "@/src/modules/result/components/RecommendedRoutePanel";
 import { ResultActionsBar } from "@/src/modules/result/components/ResultActionsBar";
 import { ResultBlockedState } from "@/src/modules/result/components/ResultBlockedState";
@@ -394,6 +395,18 @@ export function ResultPage({ caseId }: { caseId: string }) {
             legalDisclaimer={result.legalDisclaimer}
             warnings={result.warnings}
             showEconomicDisclaimer={hasEconomicAmounts(result)}
+          />
+
+          <ProfessionalReviewCTA
+            caseId={caseId}
+            targetType="case_result"
+            targetId={result.resultId || caseId}
+            recommended={
+              result.recommendedRoute?.requiresProfessionalReview ||
+              result.status === "requires_review"
+            }
+            requiresReview={Boolean(result.recommendedRoute?.requiresProfessionalReview)}
+            riskLevel={result.finalViability?.level}
           />
 
           <ResultTabs caseId={caseId} activeTab={activeTab} />

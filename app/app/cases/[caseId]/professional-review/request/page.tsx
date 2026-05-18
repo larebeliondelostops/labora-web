@@ -4,11 +4,11 @@ import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
 import { ClientProfessionalReviewPage } from "@/src/modules/professional-review/pages/ClientProfessionalReviewPage";
 
 export const metadata: Metadata = {
-  title: "Revision profesional",
-  description: "Seguimiento de la revision profesional del expediente.",
+  title: "Solicitar revision profesional",
+  description: "Formulario para solicitar revision profesional de un documento.",
 };
 
-export default async function AppCaseProfessionalReviewRoute({
+export default async function AppCaseProfessionalReviewRequestRoute({
   params,
 }: {
   params: Promise<{ caseId: string }>;
@@ -17,7 +17,7 @@ export default async function AppCaseProfessionalReviewRoute({
 
   return (
     <CasesAppFrame>
-      <ClientProfessionalReviewPage caseId={caseId} view="overview" />
+      <ClientProfessionalReviewPage caseId={caseId} view="request" />
     </CasesAppFrame>
   );
 }

@@ -153,7 +153,7 @@ export function QualityCheckPage({
           Ejecutar control de calidad
         </button>
         <Link
-          href={`/app/cases/${caseId}/professional-review`}
+          href={`/app/cases/${caseId}/professional-review/request?targetType=legal_draft&targetId=${draftId}&reviewType=legal_draft_review`}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-labora-ui px-4 py-2 text-sm font-semibold text-labora-deep hover:bg-labora-ivory"
         >
           <Sparkles className="h-4 w-4" aria-hidden="true" />

@@ -195,7 +195,11 @@ export function LegalActionDetailPage({
                 </Link>
               ) : null}
               <Link
-                href={`/app/cases/${caseId}/professional-review`}
+                href={
+                  action.drafts[0]
+                    ? `/app/cases/${caseId}/professional-review/request?targetType=legal_draft&targetId=${action.drafts[0].id}&reviewType=legal_draft_review`
+                    : `/app/cases/${caseId}/professional-review/request?targetType=case_result&targetId=${caseId}`
+                }
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-labora-ui px-4 py-2 text-sm font-semibold text-labora-deep hover:bg-labora-ivory"
               >
                 <Sparkles className="h-4 w-4" aria-hidden="true" />

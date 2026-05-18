@@ -7,6 +7,7 @@ import {
   FileUp,
   History,
   RotateCcw,
+  UserCheck,
 } from "lucide-react";
 
 import { InlineAlert, SkeletonCard } from "@/components/auth/FormFeedback";
@@ -74,6 +75,9 @@ export function CaseDetailPage({ caseId }: { caseId: string }) {
 
   const statusMeta = getCaseStatusMeta(laboraCase.status);
   const recentHistory = history.slice(0, 3);
+  const canOpenProfessionalReview =
+    laboraCase.allowedActions.includes("request_review") ||
+    laboraCase.nextBestAction === "request_review";
 
   return (
     <section className="space-y-5 pb-20 md:pb-0">
@@ -140,6 +144,15 @@ export function CaseDetailPage({ caseId }: { caseId: string }) {
                 <History className="h-4 w-4" aria-hidden="true" />
                 Ver historial
               </Link>
+              {canOpenProfessionalReview ? (
+                <Link
+                  href={`/app/cases/${laboraCase.id}/professional-review`}
+                  className="flex min-h-11 items-center gap-3 rounded-lg border border-labora-ui px-3 py-2 text-sm font-semibold text-labora-deep hover:bg-labora-ivory"
+                >
+                  <UserCheck className="h-4 w-4" aria-hidden="true" />
+                  Revision profesional
+                </Link>
+              ) : null}
             </div>
           </section>
         </aside>

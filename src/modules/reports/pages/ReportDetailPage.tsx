@@ -15,6 +15,7 @@ import { CaseReportsNavigation } from "@/src/modules/reports/components/CaseRepo
 import { EvidenceReferencesDrawer } from "@/src/modules/reports/components/EvidenceReferencesDrawer";
 import { ExportActions } from "@/src/modules/reports/components/ExportActions";
 import { ExportReportModal } from "@/src/modules/reports/components/ExportReportModal";
+import { ProfessionalReviewCTA } from "@/src/modules/professional-review/components/professional-review-components";
 import {
   InconsistencyMatrixTable,
   normalizeInconsistencyRows,
@@ -458,6 +459,17 @@ export function ReportDetailPage({
       </div>
 
       <DetailState report={report} onRetry={reportResource.refetch} />
+
+      {canShowContent ? (
+        <ProfessionalReviewCTA
+          caseId={caseId}
+          targetType="report"
+          targetId={report.id}
+          recommended={report.requiresHumanReview || report.status === "requires_review"}
+          requiresReview={report.status === "requires_review"}
+          riskLevel={report.reviewReason ? "alto" : undefined}
+        />
+      ) : null}
 
       {downloadMutation.error ? (
         <InlineAlert tone="error">{downloadMutation.error}</InlineAlert>
