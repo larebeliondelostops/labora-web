@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-
-import { CasesAppFrame } from "@/src/modules/cases/pages/CasesAppFrame";
-import { CaseModuleRedirectPage } from "@/src/modules/cases/pages/CaseModuleRedirectPage";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Informe",
@@ -15,9 +13,5 @@ export default async function AppCaseReportRoute({
 }) {
   const { caseId } = await params;
 
-  return (
-    <CasesAppFrame>
-      <CaseModuleRedirectPage destination={`/cases/${caseId}/report`} />
-    </CasesAppFrame>
-  );
+  redirect(`/app/cases/${caseId}/reports`);
 }

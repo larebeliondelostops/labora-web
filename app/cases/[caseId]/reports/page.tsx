@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function ReportAliasPage({
+export default async function CaseReportsAliasRoute({
   params,
 }: {
   params: Promise<{ caseId: string }>;
