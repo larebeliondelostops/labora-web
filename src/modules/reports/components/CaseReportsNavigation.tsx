@@ -8,9 +8,12 @@ const tabs = [
   { label: "Documentos", href: "documents", icon: FileText },
   { label: "Datos extraidos", href: "extraction", icon: ClipboardList },
   { label: "Cuestionario", href: "questionnaire", icon: ListChecks },
+  { label: "Progreso", href: "progress", icon: ListChecks },
   { label: "Resultado", href: "result", icon: BarChart3 },
   { label: "Informe", href: "reports", icon: ScrollText },
   { label: "Calculo", href: "result?tab=calculo", icon: Table2 },
+  { label: "Escritos", href: "legal-actions", icon: ScrollText },
+  { label: "Entrega final", href: "delivery", icon: FileText },
   { label: "Historial", href: "history", icon: History },
 ];
 
