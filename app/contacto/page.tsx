@@ -9,7 +9,7 @@ import { PageContainer, Section, SectionHeader } from "@/components/public/Page"
 export const metadata: Metadata = {
   title: "Contacto",
   description:
-    "Contacta a Labora sin enviar documentos ni informacion sensible desde el formulario publico.",
+    "Contacta a Labora sin enviar documentos ni información sensible desde el formulario público.",
 };
 
 export default function ContactoPage() {
@@ -22,8 +22,8 @@ export default function ContactoPage() {
             <div className="space-y-5">
               <SectionHeader
                 eyebrow="Contacto"
-                title="Cuentanos como podemos orientarte"
-                description="Este formulario es solo para contacto comercial. No incluyas documentos, historia laboral, salarios ni informacion sensible."
+                title="Cuéntanos cómo podemos orientarte"
+                description="Este formulario es solo para contacto comercial. No incluyas documentos, historia laboral, salarios ni información sensible."
               />
               <AITransparencyBanner />
             </div>

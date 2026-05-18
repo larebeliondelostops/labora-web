@@ -6,12 +6,12 @@ import { CtaLink } from "@/components/public/Buttons";
 import { FinalCTA, ScopeList } from "@/components/public/ConversionBlocks";
 import { LegalNotice } from "@/components/public/NoticeBlocks";
 import { PageContainer, Section, SectionHeader } from "@/components/public/Page";
-import { pricingIncluded, pricingNotIncluded } from "@/lib/public-content";
+import { landingCopy, pricingIncluded, pricingNotIncluded } from "@/lib/public-content";
 
 export const metadata: Metadata = {
   title: "Precios y alcance",
   description:
-    "Conoce que incluye Labora y por que el pago ocurre despues del preanalisis y la vista previa bloqueada.",
+    "Conoce qué incluye Labora y cómo verás el valor del servicio antes de pagar.",
 };
 
 export default function PreciosPage() {
@@ -23,24 +23,24 @@ export default function PreciosPage() {
           <PageContainer className="py-14">
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <SectionHeader
-                eyebrow="Alcance comercial"
-                title="Inicia sin pagar de inmediato"
-                description="Puedes crear un caso y recibir una orientacion preliminar. El pago ocurre despues del preanalisis y de una vista previa bloqueada."
+                eyebrow="Precio"
+                title={landingCopy.price.title}
+                description={landingCopy.price.description}
               />
               <article className="rounded-lg border border-labora-ui bg-labora-ivory p-6">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-labora-green">
-                  Pago al final
+                  Sin sorpresas
                 </p>
                 <p className="mt-4 font-heading text-3xl font-semibold text-labora-charcoal">
-                  El analisis completo se desbloquea cuando decides avanzar.
+                  Decides avanzar cuando entiendas el valor y el alcance.
                 </p>
                 <p className="mt-4 text-sm leading-6 text-labora-gray">
-                  Labora no promete resultado favorable, demanda automatica ni asesoria
-                  personalizada desde la landing publica.
+                  Labora no promete resultado favorable, demanda automática ni asesoría
+                  personalizada desde la landing pública.
                 </p>
                 <div className="mt-6">
                   <CtaLink href="/iniciar" eventLabel="pricing_iniciar">
-                    Iniciar analisis
+                    {landingCopy.hero.primaryCta}
                   </CtaLink>
                 </div>
               </article>
@@ -61,7 +61,7 @@ export default function PreciosPage() {
           </Section>
         </PageContainer>
 
-        <FinalCTA title="Revisa primero, paga despues de la vista previa" />
+        <FinalCTA title="Revisa primero y decide con tranquilidad" />
       </main>
       <PublicFooter />
     </div>

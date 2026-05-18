@@ -20,12 +20,12 @@ import {
 } from "@/components/public/NoticeBlocks";
 import { PageContainer, Section, SectionHeader } from "@/components/public/Page";
 import { FaqAccordion } from "@/components/public/FaqAccordion";
-import { trustItems } from "@/lib/public-content";
+import { landingCopy, trustItems } from "@/lib/public-content";
 
 export const metadata: Metadata = {
-  title: "Analisis de historia laboral y pensional",
+  title: "Revisión de historia laboral clara y sencilla",
   description:
-    "Revisa tu historia laboral, identifica posibles inconsistencias y accede a un analisis tecnico-juridico asistido.",
+    "Revisa tu historia laboral, entiende posibles errores y avanza con información clara antes de pagar.",
 };
 
 export default function HomePage() {
@@ -38,20 +38,20 @@ export default function HomePage() {
         <PageContainer>
           <Section>
             <SectionHeader
-              eyebrow="Beneficios"
-              title="Menos incertidumbre antes de avanzar"
-              description="Labora combina flujo guiado, organizacion documental y advertencias claras sobre el alcance del analisis."
+              eyebrow="Claridad"
+              title="Antes de empezar, todo claro"
+              description="Sabes qué documentos puedes usar, cómo se presenta el precio y cuándo puede ser recomendable una revisión profesional."
             />
             <div className="mt-8">
               <HomeDynamicSections />
             </div>
           </Section>
 
-          <Section className="border-t border-labora-ui">
+          <Section id="como-funciona" className="scroll-mt-24 border-t border-labora-ui">
             <SectionHeader
-              eyebrow="Como funciona"
-              title="Del registro al informe, con pago al final"
-              description="Primero entiendes el proceso y recibes una orientacion preliminar. El analisis completo se desbloquea despues de la vista previa."
+              eyebrow="Paso a paso"
+              title={landingCopy.howItWorks.title}
+              description={landingCopy.howItWorks.description}
             />
             <div className="mt-8">
               <HomeProcessPreview />
@@ -61,8 +61,8 @@ export default function HomePage() {
           <Section className="border-t border-labora-ui">
             <SectionHeader
               eyebrow="Casos de uso"
-              title="Pensado para expedientes laborales y pensionales"
-              description="No prometemos un resultado favorable. Te damos una ruta clara para revisar informacion y decidir el siguiente paso."
+              title="Pensado para revisiones laborales y pensionales"
+              description="No prometemos un resultado favorable. Te damos una ruta clara para revisar información y decidir el siguiente paso."
             />
             <div className="mt-8">
               <HomeServicePreview />
@@ -71,9 +71,9 @@ export default function HomePage() {
         </PageContainer>
 
         <PageIntro
-          eyebrow="Producto"
-          title="Una experiencia responsive para revisar, validar y avanzar"
-          description="La interfaz esta pensada para escritorio y movil: carga de documentos, seguimiento de progreso, resultados e informes se organizan dentro del expediente."
+          eyebrow="Acompañamiento"
+          title="Tu información en orden antes de tomar decisiones"
+          description="Dentro de tu expediente puedes cargar documentos, seguir el avance y revisar resultados con una estructura clara."
           image="/showcase/analysis-results.jpeg"
         />
 
@@ -83,7 +83,7 @@ export default function HomePage() {
               <SectionHeader
                 eyebrow="Confianza"
                 title="Privacidad y trazabilidad desde el primer contacto"
-                description="No subas documentos ni informacion sensible en formularios publicos. La carga documental se realiza dentro del expediente seguro."
+                description="No subas documentos ni información sensible en formularios públicos. La carga documental se realiza dentro del expediente seguro."
               />
               <SecurityChecklist items={trustItems} />
             </div>
@@ -101,7 +101,7 @@ export default function HomePage() {
             <SectionHeader
               eyebrow="FAQ"
               title="Preguntas frecuentes"
-              description="Respuestas rapidas antes de crear tu expediente."
+              description="Respuestas rápidas antes de crear tu expediente."
             />
             <div className="mt-8">
               <FaqAccordion compact />

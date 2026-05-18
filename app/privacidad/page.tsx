@@ -12,26 +12,26 @@ import { trustItems } from "@/lib/public-content";
 export const metadata: Metadata = {
   title: "Privacidad y confianza",
   description:
-    "Conoce como Labora separa el contacto publico del tratamiento de datos sensibles dentro del expediente seguro.",
+    "Conoce cómo Labora separa el contacto público del tratamiento de datos sensibles dentro del expediente seguro.",
 };
 
 const principles = [
   {
-    title: "Datos minimos en publico",
+    title: "Datos mínimos en público",
     description:
-      "La landing solo solicita datos de contacto. No pedimos historia laboral, salarios ni soportes en formularios publicos.",
+      "La landing solo solicita datos de contacto. No pedimos historia laboral, salarios ni soportes en formularios públicos.",
     icon: ShieldCheck,
   },
   {
     title: "Consentimiento antes de tratar datos sensibles",
     description:
-      "La carga documental y el analisis se realizan dentro del expediente, despues de aceptar las autorizaciones.",
+      "La carga documental y el análisis se realizan dentro del expediente, después de aceptar las autorizaciones.",
     icon: LockKeyhole,
   },
   {
-    title: "Revision humana cuando aplique",
+    title: "Revisión humana cuando aplique",
     description:
-      "La IA asistida acelera organizacion y lectura, pero no reemplaza una revision juridica profesional.",
+      "La revisión asistida acelera organización y lectura, pero no reemplaza una revisión profesional.",
     icon: UserCheck,
   },
 ];
@@ -44,7 +44,7 @@ export default function PrivacidadPage() {
         <PageIntro
           eyebrow="Confianza"
           title="Tus datos sensibles no empiezan en la landing"
-          description="El contacto publico es deliberadamente simple. El expediente seguro es el lugar para documentos, autorizaciones y analisis."
+          description="El contacto público es deliberadamente simple. El expediente seguro es el lugar para documentos, autorizaciones y análisis."
           image="/showcase/landing-overview.jpeg"
         />
 
@@ -53,7 +53,7 @@ export default function PrivacidadPage() {
             <SectionHeader
               eyebrow="Principios"
               title="Privacidad clara antes de convertir"
-              description="Labora separa la conversion publica del flujo privado de expediente para reducir riesgos y expectativas incorrectas."
+              description="Labora separa la conversión pública del flujo privado de expediente para reducir riesgos y expectativas incorrectas."
             />
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {principles.map((principle) => (
@@ -78,7 +78,7 @@ export default function PrivacidadPage() {
               <SectionHeader
                 eyebrow="Seguridad"
                 title="Checklist de confianza"
-                description="Estos puntos deben mantenerse tambien en produccion y en el backend."
+                description="Estos puntos deben mantenerse también en producción y en el backend."
               />
               <SecurityChecklist items={trustItems} />
             </div>

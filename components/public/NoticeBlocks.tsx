@@ -3,9 +3,9 @@ import { Bot, ShieldCheck, UserCheck } from "lucide-react";
 export function LegalNotice() {
   return (
     <div className="rounded-lg border border-labora-ui bg-white p-5 text-sm leading-6 text-labora-gray">
-      <strong className="font-semibold text-labora-charcoal">Alcance:</strong> Labora entrega
-      orientacion inicial y analisis asistido sobre informacion laboral y pensional. Los
-      resultados pueden requerir validacion profesional antes de una actuacion formal.
+      <strong className="font-semibold text-labora-charcoal">Importante:</strong> Labora te ayuda
+      a ordenar y revisar tu información laboral. En algunos casos, puede ser recomendable que un
+      profesional revise el resultado.
     </div>
   );
 }
@@ -16,8 +16,8 @@ export function AITransparencyBanner() {
       <div className="flex gap-3">
         <Bot className="mt-1 h-5 w-5 flex-none text-labora-deep" aria-hidden="true" />
         <p className="text-sm leading-6 text-labora-deep">
-          Usamos IA asistida para organizar informacion y acelerar el analisis, pero las
-          decisiones relevantes deben apoyarse en reglas verificables y revision humana cuando
+          Usamos tecnología asistida para organizar información y acelerar la revisión, pero las
+          decisiones relevantes deben apoyarse en reglas verificables y revisión humana cuando
           aplique.
         </p>
       </div>

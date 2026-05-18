@@ -72,8 +72,8 @@ export function ProcessTimeline({
 }
 
 export function FinalCTA({
-  title = "Empieza con una orientacion clara antes de pagar",
-  description = "Crea tu cuenta, acepta los consentimientos y abre tu expediente cuando estes listo.",
+  title = "Empieza con una revisión clara antes de pagar",
+  description = "Crea tu cuenta, acepta los consentimientos y abre tu expediente cuando estés listo.",
 }: {
   title?: string;
   description?: string;
@@ -86,10 +86,14 @@ export function FinalCTA({
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">{description}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <CtaLink href={primaryCta.href} eventLabel="final_iniciar">
+          <CtaLink href={primaryCta.href} eventLabel="landing_cta_primary_clicked">
             {primaryCta.label}
           </CtaLink>
-          <CtaLink href={secondaryCta.href} variant="secondary" eventLabel="final_como_funciona">
+          <CtaLink
+            href={secondaryCta.href}
+            variant="secondary"
+            eventLabel="landing_how_it_works_clicked"
+          >
             {secondaryCta.label}
           </CtaLink>
         </div>

@@ -1,79 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { CtaLink } from "@/components/public/Buttons";
 import { BenefitGrid, ProcessTimeline, ServiceCards } from "@/components/public/ConversionBlocks";
-import { LoadingSkeleton } from "@/components/public/StateBlocks";
-import { getPublicHome, trackPublicEvent, type PublicHomeContent } from "@/lib/public-api";
-import { benefits, primaryCta, processSteps, secondaryCta, serviceCards } from "@/lib/public-content";
+import { trackPublicEvent, type PublicHomeContent } from "@/lib/public-api";
+import {
+  benefits,
+  landingCopy,
+  primaryCta,
+  processSteps,
+  secondaryCta,
+  serviceCards,
+} from "@/lib/public-content";
 
-const fallbackHome: Required<PublicHomeContent> = {
+const homeContent: Required<PublicHomeContent> = {
   hero: {
-    eyebrow: "Legal-tech clara, humana y profesional",
-    title: "Revisa tu historia laboral y entiende si puede haber errores pensionales",
-    subtitle:
-      "Labora te guia para cargar tus documentos, recibir una orientacion preliminar y acceder a un analisis tecnico-juridico cuando estes listo.",
+    eyebrow: landingCopy.hero.eyebrow,
+    title: landingCopy.hero.title,
+    subtitle: landingCopy.hero.subtitle,
   },
   benefits: benefits.map(({ title, description }) => ({ title, description })),
-  legalNotice:
-    "Labora usa herramientas de IA asistida y reglas verificables. La informacion inicial no reemplaza una revision juridica profesional ni constituye asesoria personalizada sin expediente.",
+  legalNotice: landingCopy.importantNotice.description,
 };
 
 export function useHomeContent({ trackView = false }: { trackView?: boolean } = {}) {
-  const [content, setContent] = useState<Required<PublicHomeContent>>(fallbackHome);
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    let isMounted = true;
-
     if (trackView) {
       trackPublicEvent("landing_publica.viewed", { page: "home" });
     }
-
-    getPublicHome()
-      .then((remoteContent) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setContent({
-          hero: {
-            ...fallbackHome.hero,
-            ...remoteContent.hero,
-          },
-          benefits: remoteContent.benefits?.length
-            ? remoteContent.benefits
-            : fallbackHome.benefits,
-          legalNotice: remoteContent.legalNotice || fallbackHome.legalNotice,
-        });
-      })
-      .catch(() => {
-        trackPublicEvent("landing_publica.failed", {
-          page: "home",
-          reason: "public_home_fetch",
-        });
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
   }, [trackView]);
 
-  return { content, isLoading };
+  return { content: homeContent, isLoading: false };
 }
 
 export function HomeDynamicSections() {
-  const { content, isLoading } = useHomeContent();
-
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
+  const { content } = useHomeContent();
 
   const benefitItems = content.benefits.map((item, index) => ({
     ...item,
@@ -84,7 +46,7 @@ export function HomeDynamicSections() {
 }
 
 export function HomeHero() {
-  const { content, isLoading } = useHomeContent({ trackView: true });
+  const { content } = useHomeContent({ trackView: true });
 
   return (
     <section
@@ -107,23 +69,28 @@ export function HomeHero() {
           <p className="mt-5 max-w-xl text-base leading-7 text-labora-gray sm:text-lg">
             {content.hero.subtitle}
           </p>
+          <div className="mt-5 max-w-xl space-y-3 text-sm leading-6 text-labora-charcoal sm:text-base">
+            {landingCopy.serviceDescription.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <CtaLink href={primaryCta.href} className="w-full sm:w-auto" eventLabel="hero_iniciar">
+            <CtaLink
+              href={primaryCta.href}
+              className="w-full sm:w-auto"
+              eventLabel="landing_cta_primary_clicked"
+            >
               {primaryCta.label}
             </CtaLink>
             <CtaLink
               href={secondaryCta.href}
               variant="secondary"
               className="w-full sm:w-auto"
-              eventLabel="hero_como_funciona"
+              eventLabel="landing_how_it_works_clicked"
             >
               {secondaryCta.label}
             </CtaLink>
           </div>
-          <p className="mt-6 rounded-lg border border-labora-ui bg-white/82 p-4 text-xs leading-5 text-labora-gray backdrop-blur">
-            {isLoading ? "Cargando contenido publico. " : ""}
-            {content.legalNotice}
-          </p>
         </div>
       </div>
     </section>
@@ -131,7 +98,7 @@ export function HomeHero() {
 }
 
 export function HomeProcessPreview() {
-  return <ProcessTimeline steps={processSteps.slice(0, 5)} compact />;
+  return <ProcessTimeline steps={processSteps} compact />;
 }
 
 export function HomeServicePreview() {

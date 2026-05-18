@@ -103,7 +103,7 @@ export function FaqAccordion({ compact = false }: { compact?: boolean }) {
       {isLoading ? <LoadingSkeleton /> : null}
 
       {!isLoading && filteredItems.length === 0 ? (
-        <EmptyState message="No encontramos preguntas con ese filtro. Prueba otra busqueda o escribenos." />
+        <EmptyState message="No encontramos preguntas con ese filtro. Prueba otra búsqueda o escríbenos." />
       ) : null}
 
       <div className="grid gap-3">

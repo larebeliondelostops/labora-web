@@ -47,11 +47,11 @@ export function LeadForm() {
     if (!form.email.trim()) {
       nextErrors.email = "Ingresa tu correo.";
     } else if (!getEmailIsValid(form.email)) {
-      nextErrors.email = "Ingresa un correo valido.";
+      nextErrors.email = "Ingresa un correo válido.";
     }
 
     if (form.message.length > 2000) {
-      nextErrors.message = "El mensaje debe tener maximo 2000 caracteres.";
+      nextErrors.message = "El mensaje debe tener máximo 2000 caracteres.";
     }
 
     if (!form.acceptedPrivacyNotice) {
@@ -95,7 +95,7 @@ export function LeadForm() {
       setForm(initialState);
     } catch {
       setSubmitError(
-        "No pudimos enviar tus datos en este momento. Revisa la informacion o intenta de nuevo.",
+        "No pudimos enviar tus datos en este momento. Revisa la información o intenta de nuevo.",
       );
       trackPublicEvent("landing_publica.failed", {
         page: "contacto",
@@ -135,7 +135,7 @@ export function LeadForm() {
         />
 
         <Field
-          label="Correo electronico"
+          label="Correo electrónico"
           name="email"
           type="email"
           value={form.email}
@@ -146,7 +146,7 @@ export function LeadForm() {
         />
 
         <Field
-          label="Telefono"
+          label="Teléfono"
           name="phone"
           type="tel"
           value={form.phone}
@@ -154,7 +154,7 @@ export function LeadForm() {
         />
 
         <label className="grid gap-2 text-sm font-semibold text-labora-charcoal">
-          Interes principal
+          Interés principal
           <select
             value={form.serviceInterest}
             onChange={(event) =>
@@ -181,7 +181,7 @@ export function LeadForm() {
               setForm((current) => ({ ...current, message: event.target.value }))
             }
             className="rounded-lg border border-labora-ui bg-white px-3 py-3 text-sm font-normal text-labora-charcoal outline-none focus:border-labora-green focus:ring-2 focus:ring-labora-mint"
-            placeholder="Cuentanos de forma general que necesitas. No incluyas documentos ni datos sensibles."
+            placeholder="Cuéntanos de forma general qué necesitas. No incluyas documentos ni datos sensibles."
           />
           <span className="text-xs font-normal text-labora-gray">
             {form.message.length}/2000 caracteres
@@ -205,8 +205,8 @@ export function LeadForm() {
             className="mt-1 h-4 w-4 rounded border-labora-ui text-labora-green focus:ring-labora-green"
           />
           <span>
-            Acepto ser contactado y entiendo que no debo enviar documentos ni informacion
-            sensible por este formulario. Puedo revisar la pagina de{" "}
+            Acepto ser contactado y entiendo que no debo enviar documentos ni información
+            sensible por este formulario. Puedo revisar la página de{" "}
             <Link href="/privacidad" className="font-semibold text-labora-deep underline">
               privacidad
             </Link>

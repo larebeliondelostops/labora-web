@@ -5,12 +5,12 @@ import { PublicNavbar } from "@/components/layout/PublicNavbar";
 import { FinalCTA, PageIntro, ProcessTimeline } from "@/components/public/ConversionBlocks";
 import { AITransparencyBanner, HumanReviewCallout } from "@/components/public/NoticeBlocks";
 import { PageContainer, Section, SectionHeader } from "@/components/public/Page";
-import { processSteps } from "@/lib/public-content";
+import { landingCopy, processSteps } from "@/lib/public-content";
 
 export const metadata: Metadata = {
-  title: "Como funciona",
+  title: "Cómo funciona",
   description:
-    "Conoce el flujo de Labora: registro, consentimiento, expediente, documentos, preanalisis, pago al final e informe.",
+    "Conoce cómo Labora ordena tu historia laboral, revisa posibles errores y entrega un informe fácil de revisar.",
 };
 
 export default function ComoFuncionaPage() {
@@ -20,8 +20,8 @@ export default function ComoFuncionaPage() {
       <main>
         <PageIntro
           eyebrow="Proceso"
-          title="Un recorrido guiado, sin checkout directo desde la landing"
-          description="Labora sigue un flujo con pago al final: primero creas expediente, cargas documentos en privado y recibes una orientacion preliminar."
+          title={landingCopy.howItWorks.title}
+          description={landingCopy.howItWorks.description}
           image="/showcase/documents-ocr.jpeg"
         />
 
@@ -29,8 +29,8 @@ export default function ComoFuncionaPage() {
           <Section>
             <SectionHeader
               eyebrow="Pasos"
-              title="Del registro a la entrega final"
-              description="Cada etapa protege el alcance del servicio y evita pedir informacion sensible antes del consentimiento."
+              title="Revisión en tres pasos"
+              description="La pantalla pública explica el proceso sin pedir documentos sensibles antes del consentimiento."
             />
             <div className="mt-8">
               <ProcessTimeline steps={processSteps} />
@@ -46,8 +46,8 @@ export default function ComoFuncionaPage() {
         </PageContainer>
 
         <FinalCTA
-          title="Abre tu expediente solo cuando entiendas el recorrido"
-          description="El CTA principal te lleva a crear cuenta o continuar el expediente, no a pagar de inmediato."
+          title="Abre tu expediente cuando entiendas el recorrido"
+          description="El botón principal te lleva a crear cuenta o continuar tu expediente."
         />
       </main>
       <PublicFooter />

@@ -21,7 +21,7 @@ export default function FaqPage() {
           <SectionHeader
             eyebrow="FAQ"
             title="Preguntas frecuentes"
-            description="Filtra por tema o busca una duda especifica. Si no encuentras respuesta, puedes escribirnos sin enviar datos sensibles."
+            description="Filtra por tema o busca una duda específica. Si no encuentras respuesta, puedes escribirnos sin enviar datos sensibles."
           />
           <div className="mt-8">
             <FaqAccordion />
@@ -31,9 +31,9 @@ export default function FaqPage() {
         <Section className="bg-labora-deep text-white">
           <PageContainer className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
-              <h2 className="font-heading text-3xl font-semibold">Necesitas mas claridad?</h2>
+              <h2 className="font-heading text-3xl font-semibold">¿Necesitas más claridad?</h2>
               <p className="mt-2 text-sm leading-6 text-white/78">
-                Dejanos tus datos de contacto. No adjuntes documentos en la landing publica.
+                Déjanos tus datos de contacto. No adjuntes documentos en la landing pública.
               </p>
             </div>
             <CtaLink href="/contacto" variant="secondary" eventLabel="faq_contacto">

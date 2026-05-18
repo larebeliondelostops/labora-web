@@ -7,10 +7,11 @@ import { useState } from "react";
 
 import { Logo } from "@/components/brand/Logo";
 import { CtaLink } from "@/components/public/Buttons";
+import { landingCopy } from "@/lib/public-content";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/como-funciona", label: "Como funciona" },
+  { href: "/#como-funciona", label: "Cómo funciona" },
   { href: "/precios", label: "Precios" },
   { href: "/privacidad", label: "Privacidad" },
   { href: "/faq", label: "FAQ" },
@@ -24,7 +25,12 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-labora-ui bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3 sm:px-6">
-        <Logo />
+        <div className="flex min-w-0 items-center gap-4">
+          <Logo />
+          <p className="hidden max-w-56 text-xs leading-5 text-labora-gray xl:block">
+            {landingCopy.header.support}
+          </p>
+        </div>
 
         <nav className="hidden items-center gap-1 text-sm text-labora-gray lg:flex">
           {navItems.map((item) => (
@@ -44,17 +50,17 @@ export function PublicHeader() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <Link href="/login" className="text-sm font-semibold text-labora-deep">
-            Ingresar
+            {landingCopy.header.loginCta}
           </Link>
           <CtaLink href="/iniciar" eventLabel="header_iniciar">
-            Iniciar
+            {landingCopy.header.primaryCta}
           </CtaLink>
         </div>
 
         <button
           type="button"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-labora-ui bg-white text-labora-deep lg:hidden"
-          aria-label={isOpen ? "Cerrar menu" : "Abrir menu"}
+          aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={isOpen}
           onClick={() => setIsOpen((value) => !value)}
         >
@@ -80,14 +86,14 @@ export function PublicHeader() {
               onClick={() => setIsOpen(false)}
               className="rounded-lg px-3 py-3 font-semibold text-labora-deep hover:bg-labora-ivory"
             >
-              Ingresar
+              {landingCopy.header.loginCta}
             </Link>
             <CtaLink
               href="/iniciar"
               className="mt-2 w-full"
               eventLabel="mobile_header_iniciar"
             >
-              Iniciar analisis
+              {landingCopy.header.primaryCta}
             </CtaLink>
           </nav>
         </div>

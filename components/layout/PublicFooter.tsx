@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Logo";
+import { landingCopy } from "@/lib/public-content";
 
 export function PublicFooter() {
   return (
@@ -9,14 +10,13 @@ export function PublicFooter() {
         <div>
           <Logo href="/" />
           <p className="mt-4 max-w-sm text-sm leading-6 text-labora-gray">
-            Analisis asistido por tecnologia. Algunos resultados pueden requerir
-            revision profesional.
+            {landingCopy.importantNotice.description}
           </p>
         </div>
         <div>
           <h2 className="text-sm font-semibold text-labora-charcoal">Producto</h2>
           <nav className="mt-3 grid gap-2 text-sm text-labora-gray">
-            <Link href="/como-funciona">Como funciona</Link>
+            <Link href="/#como-funciona">Cómo funciona</Link>
             <Link href="/precios">Precios</Link>
             <Link href="/faq">FAQ</Link>
           </nav>
@@ -26,12 +26,12 @@ export function PublicFooter() {
           <nav className="mt-3 grid gap-2 text-sm text-labora-gray">
             <Link href="/privacidad">Privacidad</Link>
             <Link href="/contacto">Contacto</Link>
-            <Link href="/login">Ingresar</Link>
+            <Link href="/login">Entrar a mi cuenta</Link>
           </nav>
         </div>
       </div>
       <div className="border-t border-labora-ui px-5 py-4 text-center text-xs text-labora-gray">
-        Labora no reemplaza una revision juridica profesional personalizada sin expediente.
+        Labora no reemplaza una revisión profesional personalizada sin expediente.
       </div>
     </footer>
   );
