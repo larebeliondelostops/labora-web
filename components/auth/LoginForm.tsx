@@ -2,35 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
+import { InlineAlert } from "@/components/auth/FormFeedback";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
-import { LoadingButton } from "@/components/auth/LoadingButton";
-import { PasswordInput } from "@/components/auth/PasswordInput";
-import { TextInput } from "@/components/auth/FormField";
 import { ApiError } from "@/lib/api";
 import {
-  getLoginSuccessPath,
-  resolveLoginError,
-  type AuthRedirectAction,
-} from "@/lib/auth-flow";
-import {
   getNextAuthPath,
-  isValidEmail,
   normalizeEmail,
-  withEmailQuery,
 } from "@/lib/auth-validation";
-import { login } from "@/services/auth.service";
 import { getMe } from "@/services/user.service";
-
-function getLoginClientErrors(email: string, password: string): Record<string, string> {
-  return {
-    ...(!isValidEmail(email) ? { email: "Ingresa un correo valido." } : {}),
-    ...(!password ? { password: "Ingresa tu contrasena." } : {}),
-  };
-}
 
 export function LoginForm() {
   const router = useRouter();
@@ -38,14 +19,8 @@ export function LoginForm() {
   const emailFromQuery = normalizeEmail(
     searchParams.get("email") || searchParams.get("recipient") || "",
   );
-  const [email, setEmail] = useState(emailFromQuery);
-  const [password, setPassword] = useState("");
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [authAction, setAuthAction] = useState<AuthRedirectAction | null>(null);
+  const redirectTo = searchParams.get("redirect_to") || searchParams.get("next") || "/app/dashboard";
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,7 +40,7 @@ export function LoginForm() {
         }
 
         if (error instanceof ApiError && error.status !== 401) {
-          setSessionError("No pudimos revisar tu sesion. Puedes intentar entrar con Google.");
+          setSessionError("No pudimos revisar tu sesion. Puedes intentar ingresar con Google.");
         }
       })
       .finally(() => {
@@ -79,120 +54,35 @@ export function LoginForm() {
     };
   }, [router]);
 
-  useEffect(() => {
-    if (email || !emailFromQuery) {
-      return;
-    }
-
-    setEmail(emailFromQuery);
-  }, [email, emailFromQuery]);
-
-  const errors = { ...getLoginClientErrors(email, password), ...fieldErrors };
-
-  const showError = (field: "email" | "password") =>
-    touched[field] ? errors[field] : undefined;
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setTouched({ email: true, password: true });
-    setFieldErrors({});
-    setSubmitError(null);
-    setAuthAction(null);
-
-    const clientErrors = getLoginClientErrors(email, password);
-
-    if (Object.values(clientErrors).some(Boolean)) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await login({
-        email: normalizeEmail(email),
-        password,
-      });
-
-      router.push(getLoginSuccessPath(response, email));
-    } catch (error) {
-      const result = resolveLoginError(error, email);
-
-      setFieldErrors(result.fieldErrors);
-      setSubmitError(result.message);
-      setAuthAction(result.action);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <div className="grid gap-5">
       {isCheckingSession ? (
         <InlineAlert tone="info">Revisando si ya tienes una sesion activa.</InlineAlert>
       ) : null}
       {sessionError ? <InlineAlert tone="warning">{sessionError}</InlineAlert> : null}
 
       <InlineAlert tone="info">
-        Ingresa con el correo y contrasena de tu cuenta. El backend valida el
-        estado real del usuario antes de continuar.
+        Ingresa con Google. Labora validara tu cuenta, rol y estado antes de
+        continuar.
       </InlineAlert>
 
-      <FormErrorSummary message={submitError} />
-      {authAction ? (
-        <Link
-          href={authAction.href}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-labora-ui bg-white px-4 py-2 text-sm font-semibold text-labora-deep underline hover:bg-labora-ivory"
-        >
-          {authAction.label}
-        </Link>
-      ) : null}
-
-      <TextInput
-        label="Correo electronico"
-        name="email"
-        type="email"
-        value={email}
-        disabled={isSubmitting}
-        error={showError("email")}
-        onBlur={() => setTouched((value) => ({ ...value, email: true }))}
-        onChange={(event) => {
-          setFieldErrors((current) => ({ ...current, email: "" }));
-          setAuthAction(null);
-          setEmail(event.target.value);
-        }}
-      />
-
-      <PasswordInput
-        label="Contrasena"
-        name="password"
-        value={password}
-        disabled={isSubmitting}
-        error={showError("password")}
-        onBlur={() => setTouched((value) => ({ ...value, password: true }))}
-        onChange={(event) => {
-          setFieldErrors((current) => ({ ...current, password: "" }));
-          setAuthAction(null);
-          setPassword(event.target.value);
-        }}
-      />
-
-      <LoadingButton type="submit" isLoading={isSubmitting}>
-        Iniciar sesion
-      </LoadingButton>
-
-      <div className="grid gap-3 border-t border-labora-ui pt-5">
-        <GoogleLoginButton redirectTo="/app/dashboard" label="Ingresar con Google" />
+      <div className="grid gap-3">
+        <GoogleLoginButton
+          redirectTo={redirectTo}
+          label="Ingresar con Google"
+          className="min-h-12 bg-labora-green text-white hover:bg-labora-deep"
+        />
       </div>
 
       <p className="text-center text-sm text-labora-gray">
         Aun no tienes cuenta?{" "}
         <Link
-          href={withEmailQuery("/registro", email)}
+          href={emailFromQuery ? `/registro?email=${encodeURIComponent(emailFromQuery)}` : "/registro"}
           className="font-semibold text-labora-deep underline"
         >
           Crear cuenta
         </Link>
       </p>
-    </form>
+    </div>
   );
 }
