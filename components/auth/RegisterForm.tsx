@@ -12,15 +12,20 @@ import { LoadingButton } from "@/components/auth/LoadingButton";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { ApiError } from "@/lib/api";
 import {
+  buildRegisterOtpPath,
+  getRegisterSuccessPath,
+  profileCompletionPath,
+  resolveRegisterError,
+  type AuthRedirectAction,
+} from "@/lib/auth-flow";
+import {
   getApiErrorCode,
-  getApiErrorDetails,
   getApiErrorMessage,
   getApiFieldErrors,
 } from "@/lib/auth-errors";
 import {
   cleanDocumentNumber,
   getNextAuthPath,
-  getSafeNextAuthPath,
   isValidEmail,
   normalizeEmail,
   withEmailQuery,
@@ -28,8 +33,6 @@ import {
 import { register } from "@/services/auth.service";
 import { getMe, updateMe } from "@/services/user.service";
 import type { CurrentUser } from "@/types/user";
-
-const profileCompletionPath = "/registro?step=datos";
 
 const documentTypes = [
   { value: "", label: "Selecciona" },
@@ -61,33 +64,8 @@ const initialState: RegisterFormState = {
   phone: "",
 };
 
-interface AuthRedirectAction {
-  href: string;
-  label: string;
-}
-
 function valueOrEmpty(value?: string | null): string {
   return value?.trim() || "";
-}
-
-function buildRegisterOtpPath(email?: string): string {
-  const params = new URLSearchParams({
-    purpose: "register",
-    next: profileCompletionPath,
-    auto: "1",
-  });
-
-  if (email) {
-    params.set("recipient", normalizeEmail(email));
-  }
-
-  return `/verificar-otp?${params.toString()}`;
-}
-
-function getBackendRedirectPath(error: unknown, fallback: string): string {
-  const redirectTo = getApiErrorDetails(error).find((detail) => detail.redirectTo)?.redirectTo;
-
-  return getSafeNextAuthPath(redirectTo) || fallback;
 }
 
 function getRegisterClientErrors(
@@ -317,41 +295,13 @@ export function RegisterForm() {
           password: form.password,
         });
 
-        const nextStep = response.nextStep || "verify_otp";
-        const recipient = response.recipient || form.email;
-
-        router.push(
-          nextStep === "verify_otp"
-            ? buildRegisterOtpPath(recipient)
-            : getNextAuthPath(nextStep, recipient),
-        );
+        router.push(getRegisterSuccessPath(response, form.email));
       } catch (error) {
-        const message = getApiErrorMessage(
-          error,
-          "No pudimos crear tu cuenta. Intentalo nuevamente.",
-        );
-        const nextFieldErrors = getApiFieldErrors(error);
-        const code = getApiErrorCode(error);
+        const result = resolveRegisterError(error, form.email);
 
-        if (code === "EMAIL_ALREADY_EXISTS" || code === "DOCUMENT_ALREADY_EXISTS") {
-          const redirectPath = getBackendRedirectPath(error, "/auth/login");
-
-          setAuthAction({
-            label: "Iniciar sesion",
-            href: withEmailQuery(redirectPath, form.email),
-          });
-
-          if (code === "EMAIL_ALREADY_EXISTS" && !nextFieldErrors.email) {
-            nextFieldErrors.email = message;
-          }
-
-          if (code === "DOCUMENT_ALREADY_EXISTS" && !nextFieldErrors.documentNumber) {
-            nextFieldErrors.documentNumber = message;
-          }
-        }
-
-        setFieldErrors(nextFieldErrors);
-        setSubmitError(message);
+        setFieldErrors(result.fieldErrors);
+        setSubmitError(result.message);
+        setAuthAction(result.action);
       } finally {
         setIsSubmitting(false);
       }

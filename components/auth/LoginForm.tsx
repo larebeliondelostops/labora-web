@@ -12,31 +12,18 @@ import { PasswordInput } from "@/components/auth/PasswordInput";
 import { TextInput } from "@/components/auth/FormField";
 import { ApiError } from "@/lib/api";
 import {
-  getApiErrorCode,
-  getApiErrorDetails,
-  getApiErrorMessage,
-  getApiFieldErrors,
-} from "@/lib/auth-errors";
+  getLoginSuccessPath,
+  resolveLoginError,
+  type AuthRedirectAction,
+} from "@/lib/auth-flow";
 import {
   getNextAuthPath,
-  getSafeNextAuthPath,
   isValidEmail,
   normalizeEmail,
   withEmailQuery,
 } from "@/lib/auth-validation";
 import { login } from "@/services/auth.service";
 import { getMe } from "@/services/user.service";
-
-interface LoginAction {
-  href: string;
-  label: string;
-}
-
-function getBackendRedirectPath(error: unknown, fallback: string): string {
-  const redirectTo = getApiErrorDetails(error).find((detail) => detail.redirectTo)?.redirectTo;
-
-  return getSafeNextAuthPath(redirectTo) || fallback;
-}
 
 function getLoginClientErrors(email: string, password: string): Record<string, string> {
   return {
@@ -56,7 +43,7 @@ export function LoginForm() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [authAction, setAuthAction] = useState<LoginAction | null>(null);
+  const [authAction, setAuthAction] = useState<AuthRedirectAction | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
@@ -126,31 +113,13 @@ export function LoginForm() {
         password,
       });
 
-      router.push(getNextAuthPath(response.nextStep || "dashboard", response.recipient || email));
+      router.push(getLoginSuccessPath(response, email));
     } catch (error) {
-      const message = getApiErrorMessage(error, "No pudimos iniciar sesion.");
-      const code = getApiErrorCode(error);
-      const nextFieldErrors = getApiFieldErrors(error);
+      const result = resolveLoginError(error, email);
 
-      if (code === "USER_NOT_REGISTERED") {
-        const redirectPath = getBackendRedirectPath(error, "/registro");
-
-        setAuthAction({
-          label: "Crear cuenta",
-          href: withEmailQuery(redirectPath, email),
-        });
-
-        if (!nextFieldErrors.email) {
-          nextFieldErrors.email = message;
-        }
-      }
-
-      if (code === "INVALID_CREDENTIALS" && !nextFieldErrors.password) {
-        nextFieldErrors.password = message;
-      }
-
-      setFieldErrors(nextFieldErrors);
-      setSubmitError(message);
+      setFieldErrors(result.fieldErrors);
+      setSubmitError(result.message);
+      setAuthAction(result.action);
     } finally {
       setIsSubmitting(false);
     }
