@@ -1,12 +1,5 @@
-import type { Metadata } from "next";
-
-import { AdminDocumentPrecheckPage } from "@/src/modules/document-precheck/pages/AdminDocumentPrecheckPage";
-
-export const metadata: Metadata = {
-  title: "Revision documental",
-  description: "Cola administrativa de IA documental preliminar.",
-};
+import { redirect } from "next/navigation";
 
 export default function AdminDocumentPrecheckRoute() {
-  return <AdminDocumentPrecheckPage />;
+  redirect("/admin/cases/case-1001/documents");
 }

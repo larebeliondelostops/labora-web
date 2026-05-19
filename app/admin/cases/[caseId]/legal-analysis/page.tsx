@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import { AdminCaseWorkspacePage } from "@/src/modules/admin/pages/AdminCaseWorkspacePage";
 
 export const metadata: Metadata = {
-  title: "Informes del expediente",
-  description: "Revision administrativa de informes por expediente.",
+  title: "Consola juridica",
+  description: "Revision juridica interna del expediente.",
 };
 
-export default async function AdminCaseReportsRoute({
+export default async function AdminCaseLegalAnalysisRoute({
   params,
 }: {
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
 
-  return <AdminCaseWorkspacePage caseId={caseId} section="reports" />;
+  return <AdminCaseWorkspacePage caseId={caseId} section="legal-analysis" />;
 }

@@ -1,12 +1,5 @@
-import type { Metadata } from "next";
-
-import { AdminLegalDraftsPage } from "@/src/modules/legal-actions/pages/AdminLegalDraftsPage";
-
-export const metadata: Metadata = {
-  title: "Borradores juridicos",
-  description: "Backoffice de borradores juridicos generados por Labora.",
-};
+import { redirect } from "next/navigation";
 
 export default function AdminLegalDraftsRoute() {
-  return <AdminLegalDraftsPage />;
+  redirect("/admin/cases/case-1001/legal-drafts");
 }

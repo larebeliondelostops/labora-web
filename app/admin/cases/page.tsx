@@ -1,16 +1,33 @@
-import { Card } from "@/components/ui/card";
+import type { Metadata } from "next";
 
-export default function AdminCasesPage() {
+import { AdminCasesPage } from "@/src/modules/admin/pages/AdminCasesPage";
+
+export const metadata: Metadata = {
+  title: "Cola de expedientes",
+  description: "Cola administrativa de expedientes Labora.",
+};
+
+export default async function AdminCasesRoute({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  const getParam = (key: string) => {
+    const value = params[key];
+    return Array.isArray(value) ? value[0] : value;
+  };
+
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <Card>
-        <h1 className="font-heading text-3xl font-semibold text-labora-deep">
-          Expedientes administrativos
-        </h1>
-        <p className="mt-2 text-labora-gray">
-          Tabla base del backoffice preparada para filtros y revision.
-        </p>
-      </Card>
-    </main>
+    <AdminCasesPage
+      initialFilters={{
+        query: getParam("query") || getParam("q"),
+        adminStatus: getParam("adminStatus"),
+        stage: getParam("stage"),
+        priority: getParam("priority"),
+        paymentStatus: getParam("paymentStatus"),
+        documentStatus: getParam("documentStatus"),
+      }}
+    />
   );
 }
