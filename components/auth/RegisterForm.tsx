@@ -9,9 +9,23 @@ import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { TextInput, SelectInput } from "@/components/auth/FormField";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { ApiError } from "@/lib/api";
-import { getApiErrorCode, getApiErrorMessage, getApiFieldErrors } from "@/lib/auth-errors";
-import { cleanDocumentNumber, getNextAuthPath, normalizeEmail } from "@/lib/auth-validation";
+import {
+  getApiErrorCode,
+  getApiErrorDetails,
+  getApiErrorMessage,
+  getApiFieldErrors,
+} from "@/lib/auth-errors";
+import {
+  cleanDocumentNumber,
+  getNextAuthPath,
+  getSafeNextAuthPath,
+  isValidEmail,
+  normalizeEmail,
+  withEmailQuery,
+} from "@/lib/auth-validation";
+import { register } from "@/services/auth.service";
 import { getMe, updateMe } from "@/services/user.service";
 import type { CurrentUser } from "@/types/user";
 
@@ -28,6 +42,8 @@ const documentTypes = [
 ];
 
 interface RegisterFormState {
+  email: string;
+  password: string;
   firstName: string;
   lastName: string;
   documentType: string;
@@ -36,12 +52,19 @@ interface RegisterFormState {
 }
 
 const initialState: RegisterFormState = {
+  email: "",
+  password: "",
   firstName: "",
   lastName: "",
   documentType: "",
   documentNumber: "",
   phone: "",
 };
+
+interface AuthRedirectAction {
+  href: string;
+  label: string;
+}
 
 function valueOrEmpty(value?: string | null): string {
   return value?.trim() || "";
@@ -59,6 +82,47 @@ function buildRegisterOtpPath(email?: string): string {
   }
 
   return `/verificar-otp?${params.toString()}`;
+}
+
+function getBackendRedirectPath(error: unknown, fallback: string): string {
+  const redirectTo = getApiErrorDetails(error).find((detail) => detail.redirectTo)?.redirectTo;
+
+  return getSafeNextAuthPath(redirectTo) || fallback;
+}
+
+function getRegisterClientErrors(
+  form: RegisterFormState,
+  requireCredentials: boolean,
+): Record<string, string> {
+  const nextErrors: Record<string, string> = {};
+
+  if (requireCredentials) {
+    if (!isValidEmail(form.email)) {
+      nextErrors.email = "Ingresa un correo valido.";
+    }
+
+    if (!form.password) {
+      nextErrors.password = "Ingresa una contrasena.";
+    }
+  }
+
+  if (form.firstName.trim().length < 2) {
+    nextErrors.firstName = "Ingresa al menos 2 caracteres.";
+  }
+
+  if (form.lastName.trim().length < 2) {
+    nextErrors.lastName = "Ingresa al menos 2 caracteres.";
+  }
+
+  if (!form.documentType) {
+    nextErrors.documentType = "Selecciona el tipo de documento.";
+  }
+
+  if (cleanDocumentNumber(form.documentNumber).length < 4) {
+    nextErrors.documentNumber = "Ingresa un documento valido.";
+  }
+
+  return nextErrors;
 }
 
 function getNameFallback(user: CurrentUser): Pick<RegisterFormState, "firstName" | "lastName"> {
@@ -86,6 +150,8 @@ function getInitialState(user: CurrentUser): RegisterFormState {
 
   return {
     ...name,
+    email: valueOrEmpty(user.email),
+    password: "",
     documentType: valueOrEmpty(user.documentType),
     documentNumber: valueOrEmpty(user.documentNumber),
     phone: valueOrEmpty(user.phone),
@@ -111,11 +177,18 @@ export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isProfileStep = searchParams.get("step") === "datos";
+  const emailFromQuery = normalizeEmail(
+    searchParams.get("email") || searchParams.get("recipient") || "",
+  );
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [form, setForm] = useState(initialState);
+  const [form, setForm] = useState<RegisterFormState>(() => ({
+    ...initialState,
+    email: emailFromQuery,
+  }));
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [authAction, setAuthAction] = useState<AuthRedirectAction | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -182,33 +255,26 @@ export function RegisterForm() {
     };
   }, [isProfileStep, router]);
 
+  useEffect(() => {
+    if (currentUser || !emailFromQuery) {
+      return;
+    }
+
+    setForm((value) => ({ ...value, email: value.email || emailFromQuery }));
+  }, [currentUser, emailFromQuery]);
+
   const errors = useMemo(() => {
-    const nextErrors: Record<string, string> = {};
-
-    if (form.firstName.trim().length < 2) {
-      nextErrors.firstName = "Ingresa al menos 2 caracteres.";
-    }
-
-    if (form.lastName.trim().length < 2) {
-      nextErrors.lastName = "Ingresa al menos 2 caracteres.";
-    }
-
-    if (!form.documentType) {
-      nextErrors.documentType = "Selecciona el tipo de documento.";
-    }
-
-    if (cleanDocumentNumber(form.documentNumber).length < 4) {
-      nextErrors.documentNumber = "Ingresa un documento valido.";
-    }
+    const nextErrors = getRegisterClientErrors(form, !currentUser);
 
     return { ...nextErrors, ...fieldErrors };
-  }, [fieldErrors, form]);
+  }, [currentUser, fieldErrors, form]);
 
   const showError = (field: keyof RegisterFormState) =>
     touched[field] ? errors[field] : undefined;
 
   const setValue = (field: keyof RegisterFormState, value: string) => {
     setFieldErrors((current) => ({ ...current, [field]: "" }));
+    setAuthAction(null);
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -219,15 +285,84 @@ export function RegisterForm() {
       lastName: true,
       documentType: true,
       documentNumber: true,
+      email: true,
+      password: true,
     });
     setSubmitError(null);
+    setAuthAction(null);
 
     if (!currentUser) {
-      setSubmitError("Primero conecta tu cuenta de Google para completar el registro.");
+      if (isProfileStep) {
+        setSubmitError("Primero conecta tu cuenta de Google para completar el registro.");
+        return;
+      }
+
+      const clientErrors = getRegisterClientErrors(form, true);
+      setFieldErrors({});
+
+      if (Object.values(clientErrors).some(Boolean)) {
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      try {
+        const response = await register({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          documentType: form.documentType,
+          documentNumber: cleanDocumentNumber(form.documentNumber),
+          email: normalizeEmail(form.email),
+          phone: form.phone.trim() || undefined,
+          password: form.password,
+        });
+
+        const nextStep = response.nextStep || "verify_otp";
+        const recipient = response.recipient || form.email;
+
+        router.push(
+          nextStep === "verify_otp"
+            ? buildRegisterOtpPath(recipient)
+            : getNextAuthPath(nextStep, recipient),
+        );
+      } catch (error) {
+        const message = getApiErrorMessage(
+          error,
+          "No pudimos crear tu cuenta. Intentalo nuevamente.",
+        );
+        const nextFieldErrors = getApiFieldErrors(error);
+        const code = getApiErrorCode(error);
+
+        if (code === "EMAIL_ALREADY_EXISTS" || code === "DOCUMENT_ALREADY_EXISTS") {
+          const redirectPath = getBackendRedirectPath(error, "/auth/login");
+
+          setAuthAction({
+            label: "Iniciar sesion",
+            href: withEmailQuery(redirectPath, form.email),
+          });
+
+          if (code === "EMAIL_ALREADY_EXISTS" && !nextFieldErrors.email) {
+            nextFieldErrors.email = message;
+          }
+
+          if (code === "DOCUMENT_ALREADY_EXISTS" && !nextFieldErrors.documentNumber) {
+            nextFieldErrors.documentNumber = message;
+          }
+        }
+
+        setFieldErrors(nextFieldErrors);
+        setSubmitError(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+
       return;
     }
 
-    if (Object.values(errors).some(Boolean)) {
+    const clientErrors = getRegisterClientErrors(form, false);
+    setFieldErrors({});
+
+    if (Object.values(clientErrors).some(Boolean)) {
       return;
     }
 
@@ -287,31 +422,118 @@ export function RegisterForm() {
 
   if (!isProfileStep) {
     return (
-      <div className="grid gap-5">
+      <form onSubmit={handleSubmit} className="grid gap-5">
         <InlineAlert tone="info">
-          El registro inicia con Google. Despues validaremos un codigo enviado a tu
-          correo y completaras tus datos basicos.
+          Crea tu cuenta con tus datos. El backend validara si el correo o el
+          documento ya existen antes de continuar.
         </InlineAlert>
 
-        <GoogleLoginButton
-          redirectTo={buildRegisterOtpPath()}
-          label="Registrarme con Google"
+        <FormErrorSummary message={submitError} />
+        {authAction ? (
+          <Link
+            href={authAction.href}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-labora-ui bg-white px-4 py-2 text-sm font-semibold text-labora-deep underline hover:bg-labora-ivory"
+          >
+            {authAction.label}
+          </Link>
+        ) : null}
+
+        <TextInput
+          label="Correo electronico"
+          name="email"
+          type="email"
+          value={form.email}
+          disabled={isSubmitting}
+          error={showError("email")}
+          onBlur={() => setTouched((value) => ({ ...value, email: true }))}
+          onChange={(event) => setValue("email", event.target.value)}
         />
 
-        <div className="grid gap-3 rounded-lg border border-labora-ui bg-labora-ivory p-4 text-sm text-labora-gray">
-          <p className="font-semibold text-labora-charcoal">Flujo de registro</p>
-          <p>1. Conecta tu cuenta de Google.</p>
-          <p>2. Verifica el codigo OTP enviado a tu correo.</p>
-          <p>3. Completa nombres, documento y telefono opcional.</p>
+        <PasswordInput
+          label="Contrasena"
+          name="password"
+          value={form.password}
+          disabled={isSubmitting}
+          error={showError("password")}
+          onBlur={() => setTouched((value) => ({ ...value, password: true }))}
+          onChange={(event) => setValue("password", event.target.value)}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextInput
+            label="Nombres"
+            name="firstName"
+            value={form.firstName}
+            disabled={isSubmitting}
+            error={showError("firstName")}
+            onBlur={() => setTouched((value) => ({ ...value, firstName: true }))}
+            onChange={(event) => setValue("firstName", event.target.value)}
+          />
+          <TextInput
+            label="Apellidos"
+            name="lastName"
+            value={form.lastName}
+            disabled={isSubmitting}
+            error={showError("lastName")}
+            onBlur={() => setTouched((value) => ({ ...value, lastName: true }))}
+            onChange={(event) => setValue("lastName", event.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-[0.8fr_1.2fr]">
+          <SelectInput
+            label="Tipo de documento"
+            name="documentType"
+            value={form.documentType}
+            disabled={isSubmitting}
+            options={documentTypes}
+            error={showError("documentType")}
+            onBlur={() => setTouched((value) => ({ ...value, documentType: true }))}
+            onChange={(event) => setValue("documentType", event.target.value)}
+          />
+          <TextInput
+            label="Numero de documento"
+            name="documentNumber"
+            value={form.documentNumber}
+            disabled={isSubmitting}
+            helpText="Usaremos este dato para asociar tus expedientes correctamente."
+            error={showError("documentNumber")}
+            onBlur={() => setTouched((value) => ({ ...value, documentNumber: true }))}
+            onChange={(event) => setValue("documentNumber", event.target.value)}
+          />
+        </div>
+
+        <TextInput
+          label="Celular"
+          name="phone"
+          type="tel"
+          value={form.phone}
+          disabled={isSubmitting}
+          helpText="Opcional. Formato recomendado: +57 300 111 2233."
+          onChange={(event) => setValue("phone", event.target.value)}
+        />
+
+        <LoadingButton type="submit" isLoading={isSubmitting}>
+          Crear cuenta
+        </LoadingButton>
+
+        <div className="grid gap-3 border-t border-labora-ui pt-5">
+          <GoogleLoginButton
+            redirectTo={buildRegisterOtpPath()}
+            label="Registrarme con Google"
+          />
         </div>
 
         <p className="text-center text-sm text-labora-gray">
           Ya tienes cuenta?{" "}
-          <Link href="/login" className="font-semibold text-labora-deep underline">
+          <Link
+            href={withEmailQuery("/auth/login", form.email)}
+            className="font-semibold text-labora-deep underline"
+          >
             Inicia sesion
           </Link>
         </p>
-      </div>
+      </form>
     );
   }
 

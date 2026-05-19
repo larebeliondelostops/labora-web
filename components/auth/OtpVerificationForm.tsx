@@ -186,7 +186,7 @@ export function OtpVerificationForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <form onSubmit={handleSubmit} className="grid w-full max-w-full min-w-0 gap-5">
       {isResolvingRecipient ? (
         <InlineAlert tone="info">Validando tu sesion de Google para leer el correo.</InlineAlert>
       ) : !hasValidEmailRecipient ? (
@@ -200,7 +200,7 @@ export function OtpVerificationForm() {
       {statusMessage ? <InlineAlert tone="success">{statusMessage}</InlineAlert> : null}
       <FormErrorSummary message={submitError} />
 
-      <label className="grid gap-2 text-sm font-semibold text-labora-charcoal">
+      <label className="grid w-full max-w-full min-w-0 gap-2 text-sm font-semibold text-labora-charcoal">
         Codigo de verificacion
         <input
           value={normalizedCode}
@@ -211,7 +211,7 @@ export function OtpVerificationForm() {
           autoComplete="one-time-code"
           onPaste={handlePaste}
           onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-          className="h-14 rounded-lg border border-labora-ui bg-white px-4 text-center font-heading text-2xl font-semibold tracking-[0.35em] text-labora-charcoal outline-none transition focus:border-labora-green focus:ring-2 focus:ring-labora-mint disabled:bg-labora-ivory disabled:text-labora-gray"
+          className="box-border h-14 w-full max-w-full min-w-0 rounded-lg border border-labora-ui bg-white px-4 text-center font-heading text-2xl font-semibold tracking-[0.35em] text-labora-charcoal outline-none transition focus:border-labora-green focus:ring-2 focus:ring-labora-mint disabled:bg-labora-ivory disabled:text-labora-gray"
           aria-label="Codigo OTP de seis digitos"
         />
         <span className="text-xs font-normal text-labora-gray">

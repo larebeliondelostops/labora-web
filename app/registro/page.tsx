@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 export default function RegistroPage() {
   return (
     <AuthLayout
-      title="Crea tu cuenta con Google"
-      subtitle="Primero conecta Google, luego verifica el codigo enviado al correo y completa tus datos."
+      title="Crea tu cuenta"
+      subtitle="Registra tus datos, verifica el codigo enviado al correo y continua tu expediente."
     >
       <Suspense fallback={<p className="text-sm text-labora-gray">Cargando registro...</p>}>
         <RegisterForm />

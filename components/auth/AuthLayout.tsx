@@ -19,9 +19,9 @@ export function AuthLayout({
   sideDescription = "Labora separa el contacto publico del flujo privado de datos sensibles. Despues del registro podras aceptar consentimientos y crear tu expediente.",
 }: AuthLayoutProps) {
   return (
-    <main className="min-h-screen bg-labora-ivory px-5 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <section className="rounded-2xl border border-labora-ui bg-white p-6 shadow-panel lg:p-8">
+    <main className="min-h-screen overflow-x-hidden bg-labora-ivory px-5 py-8">
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-[calc(100vw-2.5rem)] max-w-6xl min-w-0 gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <section className="box-border w-full max-w-full min-w-0 rounded-2xl border border-labora-ui bg-white p-6 shadow-panel lg:p-8">
           <Logo />
           <p className="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-labora-green">
             Cuenta Labora
@@ -49,7 +49,7 @@ export function AuthLayout({
           </Link>
         </section>
 
-        <section className="rounded-2xl border border-labora-ui bg-white p-6 shadow-panel lg:p-8">
+        <section className="box-border w-full max-w-full min-w-0 rounded-2xl border border-labora-ui bg-white p-6 shadow-panel lg:p-8">
           <div className="mb-6">
             <h2 className="font-heading text-2xl font-semibold text-labora-charcoal">
               {title}
@@ -73,12 +73,12 @@ export function CenteredAuthLayout({
   children: ReactNode;
 }) {
   return (
-    <main className="min-h-screen bg-labora-ivory px-5 py-8">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center">
+    <main className="min-h-screen overflow-x-hidden bg-labora-ivory px-5 py-8">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-[calc(100vw-2.5rem)] max-w-md min-w-0 flex-col justify-center">
         <div className="mb-6">
           <Logo />
         </div>
-        <section className="rounded-2xl border border-labora-ui bg-white p-6 shadow-panel">
+        <section className="box-border w-full max-w-full min-w-0 rounded-2xl border border-labora-ui bg-white p-6 shadow-panel">
           <h1 className="font-heading text-2xl font-semibold text-labora-charcoal">{title}</h1>
           <p className="mt-2 text-sm leading-6 text-labora-gray">{subtitle}</p>
           <div className="mt-6">{children}</div>

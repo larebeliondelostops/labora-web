@@ -6,6 +6,7 @@ const errorMessages: Record<string, string> = {
   EMAIL_ALREADY_EXISTS:
     "Este correo ya esta registrado. Puedes iniciar sesion o recuperar tu contrasena.",
   DOCUMENT_ALREADY_EXISTS: "Ya existe una cuenta asociada a este documento.",
+  USER_NOT_REGISTERED: "Este correo no esta registrado. Puedes crear una cuenta.",
   INVALID_CREDENTIALS: "Correo o contrasena incorrectos.",
   ACCOUNT_NOT_VERIFIED:
     "Tu cuenta aun no esta verificada. Ingresa el codigo enviado.",
@@ -64,18 +65,19 @@ function normalizeDetails(value: unknown): ApiErrorDetail[] {
       return [];
     }
 
-    const message = asString(item.message);
+    const detail: ApiErrorDetail = {
+      field: asString(item.field),
+      message: asString(item.message),
+      nextStep: asString(item.nextStep),
+      redirectTo: asString(item.redirectTo),
+    };
+    const hasKnownValue = Object.values(detail).some(Boolean);
 
-    if (!message) {
+    if (!hasKnownValue) {
       return [];
     }
 
-    return [
-      {
-        field: asString(item.field),
-        message,
-      },
-    ];
+    return [{ ...item, ...detail }];
   });
 }
 
@@ -157,6 +159,17 @@ export function getApiFieldErrors(error: unknown): Record<string, string> {
 
     return fields;
   }, {});
+}
+
+export function getApiErrorDetails(error: unknown): ApiErrorDetail[] {
+  return firstDetails(
+    getPath(error, ["response", "data", "error", "details"]),
+    getPath(error, ["response", "data", "details"]),
+    getPath(error, ["data", "error", "details"]),
+    getPath(error, ["data", "details"]),
+    getPath(error, ["error", "details"]),
+    error instanceof ApiError ? error.details : undefined,
+  );
 }
 
 export function getErrorCode(error: unknown): string | undefined {

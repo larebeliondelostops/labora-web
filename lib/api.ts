@@ -2,7 +2,10 @@ import { publicEnv } from "@/lib/env";
 
 export interface ApiErrorDetail {
   field?: string;
-  message: string;
+  message?: string;
+  nextStep?: string;
+  redirectTo?: string;
+  [key: string]: unknown;
 }
 
 export interface ApiErrorBody {
@@ -79,18 +82,19 @@ function normalizeDetails(value: unknown): ApiErrorDetail[] | undefined {
       return [];
     }
 
-    const message = asString(item.message);
+    const detail: ApiErrorDetail = {
+      field: asString(item.field),
+      message: asString(item.message),
+      nextStep: asString(item.nextStep),
+      redirectTo: asString(item.redirectTo),
+    };
+    const hasKnownValue = Object.values(detail).some(Boolean);
 
-    if (!message) {
+    if (!hasKnownValue) {
       return [];
     }
 
-    return [
-      {
-        field: asString(item.field),
-        message,
-      },
-    ];
+    return [{ ...item, ...detail }];
   });
 
   return details.length ? details : undefined;

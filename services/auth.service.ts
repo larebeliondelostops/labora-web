@@ -10,11 +10,13 @@ import type {
   ResetPasswordPayload,
 } from "@/types/auth";
 
-export async function register(payload: RegisterPayload): Promise<void> {
-  await apiFetch<void>("/auth/register", {
+export async function register(payload: RegisterPayload): Promise<LoginResponse> {
+  const response = await apiFetch<LoginResponse | ApiEnvelope<LoginResponse>>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+  return unwrapApiData(response);
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {

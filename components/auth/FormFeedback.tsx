@@ -26,7 +26,13 @@ export function InlineAlert({
     warning: "border-amber-200 bg-amber-50 text-amber-800",
   }[tone];
 
-  return <div className={`rounded-lg border p-4 text-sm leading-6 ${className}`}>{children}</div>;
+  return (
+    <div
+      className={`box-border w-full max-w-full min-w-0 break-words rounded-lg border p-4 text-sm leading-6 [overflow-wrap:anywhere] ${className}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function FormErrorSummary({ message }: { message?: string | null }) {

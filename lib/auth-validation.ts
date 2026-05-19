@@ -104,3 +104,20 @@ export function getSafeNextAuthPath(value?: string | null): string | undefined {
 
   return value;
 }
+
+export function withEmailQuery(path: string, email?: string): string {
+  const normalizedEmail = email ? normalizeEmail(email) : "";
+
+  if (!normalizedEmail) {
+    return path;
+  }
+
+  const [pathWithQuery, hash] = path.split("#");
+  const [pathname, query] = pathWithQuery.split("?");
+  const params = new URLSearchParams(query || "");
+  params.set("email", normalizedEmail);
+
+  const queryString = params.toString();
+
+  return `${pathname}${queryString ? `?${queryString}` : ""}${hash ? `#${hash}` : ""}`;
+}

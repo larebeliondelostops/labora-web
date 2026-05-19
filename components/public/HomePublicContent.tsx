@@ -50,11 +50,11 @@ export function HomeHero() {
 
   return (
     <section
-      className="relative flex min-h-[78svh] items-center overflow-hidden border-b border-labora-ui bg-labora-charcoal"
+      className="relative flex min-h-[78svh] items-center overflow-hidden border-b border-labora-ui bg-labora-ivory"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, rgba(246,247,242,0.95) 0%, rgba(246,247,242,0.86) 38%, rgba(246,247,242,0.34) 68%, rgba(246,247,242,0.1) 100%), url('/showcase/landing-overview.jpeg')",
-        backgroundPosition: "center",
+          "linear-gradient(90deg, rgba(246,247,242,0.99) 0%, rgba(246,247,242,0.99) 52%, rgba(246,247,242,0.82) 68%, rgba(246,247,242,0.28) 100%), linear-gradient(180deg, rgba(246,247,242,0.96) 0%, rgba(246,247,242,0) 28%), url('/showcase/landing-overview.jpeg')",
+        backgroundPosition: "72% center",
         backgroundSize: "cover",
       }}
     >
