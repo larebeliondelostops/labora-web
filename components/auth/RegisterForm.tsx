@@ -9,15 +9,8 @@ import { FormErrorSummary, InlineAlert } from "@/components/auth/FormFeedback";
 import { TextInput, SelectInput } from "@/components/auth/FormField";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { LoadingButton } from "@/components/auth/LoadingButton";
-import { PasswordInput } from "@/components/auth/PasswordInput";
 import { ApiError } from "@/lib/api";
-import {
-  buildRegisterOtpPath,
-  getRegisterSuccessPath,
-  profileCompletionPath,
-  resolveRegisterError,
-  type AuthRedirectAction,
-} from "@/lib/auth-flow";
+import { buildRegisterOtpPath, profileCompletionPath } from "@/lib/auth-flow";
 import {
   getApiErrorCode,
   getApiErrorMessage,
@@ -26,11 +19,7 @@ import {
 import {
   cleanDocumentNumber,
   getNextAuthPath,
-  isValidEmail,
-  normalizeEmail,
-  withEmailQuery,
 } from "@/lib/auth-validation";
-import { register } from "@/services/auth.service";
 import { getMe, updateMe } from "@/services/user.service";
 import type { CurrentUser } from "@/types/user";
 
@@ -45,8 +34,6 @@ const documentTypes = [
 ];
 
 interface RegisterFormState {
-  email: string;
-  password: string;
   firstName: string;
   lastName: string;
   documentType: string;
@@ -55,8 +42,6 @@ interface RegisterFormState {
 }
 
 const initialState: RegisterFormState = {
-  email: "",
-  password: "",
   firstName: "",
   lastName: "",
   documentType: "",
@@ -70,19 +55,8 @@ function valueOrEmpty(value?: string | null): string {
 
 function getRegisterClientErrors(
   form: RegisterFormState,
-  requireCredentials: boolean,
 ): Record<string, string> {
   const nextErrors: Record<string, string> = {};
-
-  if (requireCredentials) {
-    if (!isValidEmail(form.email)) {
-      nextErrors.email = "Ingresa un correo valido.";
-    }
-
-    if (!form.password) {
-      nextErrors.password = "Ingresa una contrasena.";
-    }
-  }
 
   if (form.firstName.trim().length < 2) {
     nextErrors.firstName = "Ingresa al menos 2 caracteres.";
@@ -128,8 +102,6 @@ function getInitialState(user: CurrentUser): RegisterFormState {
 
   return {
     ...name,
-    email: valueOrEmpty(user.email),
-    password: "",
     documentType: valueOrEmpty(user.documentType),
     documentNumber: valueOrEmpty(user.documentNumber),
     phone: valueOrEmpty(user.phone),
@@ -155,18 +127,11 @@ export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isProfileStep = searchParams.get("step") === "datos";
-  const emailFromQuery = normalizeEmail(
-    searchParams.get("email") || searchParams.get("recipient") || "",
-  );
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [form, setForm] = useState<RegisterFormState>(() => ({
-    ...initialState,
-    email: emailFromQuery,
-  }));
+  const [form, setForm] = useState<RegisterFormState>(initialState);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [authAction, setAuthAction] = useState<AuthRedirectAction | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -233,26 +198,17 @@ export function RegisterForm() {
     };
   }, [isProfileStep, router]);
 
-  useEffect(() => {
-    if (currentUser || !emailFromQuery) {
-      return;
-    }
-
-    setForm((value) => ({ ...value, email: value.email || emailFromQuery }));
-  }, [currentUser, emailFromQuery]);
-
   const errors = useMemo(() => {
-    const nextErrors = getRegisterClientErrors(form, !currentUser);
+    const nextErrors = getRegisterClientErrors(form);
 
     return { ...nextErrors, ...fieldErrors };
-  }, [currentUser, fieldErrors, form]);
+  }, [fieldErrors, form]);
 
   const showError = (field: keyof RegisterFormState) =>
     touched[field] ? errors[field] : undefined;
 
   const setValue = (field: keyof RegisterFormState, value: string) => {
     setFieldErrors((current) => ({ ...current, [field]: "" }));
-    setAuthAction(null);
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -263,53 +219,15 @@ export function RegisterForm() {
       lastName: true,
       documentType: true,
       documentNumber: true,
-      email: true,
-      password: true,
     });
     setSubmitError(null);
-    setAuthAction(null);
 
     if (!currentUser) {
-      if (isProfileStep) {
-        setSubmitError("Primero conecta tu cuenta de Google para completar el registro.");
-        return;
-      }
-
-      const clientErrors = getRegisterClientErrors(form, true);
-      setFieldErrors({});
-
-      if (Object.values(clientErrors).some(Boolean)) {
-        return;
-      }
-
-      setIsSubmitting(true);
-
-      try {
-        const response = await register({
-          firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(),
-          documentType: form.documentType,
-          documentNumber: cleanDocumentNumber(form.documentNumber),
-          email: normalizeEmail(form.email),
-          phone: form.phone.trim() || undefined,
-          password: form.password,
-        });
-
-        router.push(getRegisterSuccessPath(response, form.email));
-      } catch (error) {
-        const result = resolveRegisterError(error, form.email);
-
-        setFieldErrors(result.fieldErrors);
-        setSubmitError(result.message);
-        setAuthAction(result.action);
-      } finally {
-        setIsSubmitting(false);
-      }
-
+      setSubmitError("Primero conecta tu cuenta de Google para completar el registro.");
       return;
     }
 
-    const clientErrors = getRegisterClientErrors(form, false);
+    const clientErrors = getRegisterClientErrors(form);
     setFieldErrors({});
 
     if (Object.values(clientErrors).some(Boolean)) {
@@ -372,118 +290,27 @@ export function RegisterForm() {
 
   if (!isProfileStep) {
     return (
-      <form onSubmit={handleSubmit} className="grid gap-5">
+      <div className="grid gap-5">
         <InlineAlert tone="info">
-          Crea tu cuenta con tus datos. El backend validara si el correo o el
-          documento ya existen antes de continuar.
+          Selecciona tu cuenta de Google. Si ese correo ya existe en Labora,
+          entraremos directo a tu cuenta.
         </InlineAlert>
 
-        <FormErrorSummary message={submitError} />
-        {authAction ? (
-          <Link
-            href={authAction.href}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-labora-ui bg-white px-4 py-2 text-sm font-semibold text-labora-deep underline hover:bg-labora-ivory"
-          >
-            {authAction.label}
-          </Link>
-        ) : null}
-
-        <TextInput
-          label="Correo electronico"
-          name="email"
-          type="email"
-          value={form.email}
-          disabled={isSubmitting}
-          error={showError("email")}
-          onBlur={() => setTouched((value) => ({ ...value, email: true }))}
-          onChange={(event) => setValue("email", event.target.value)}
+        <GoogleLoginButton
+          redirectTo="/app/dashboard"
+          label="Registrarme con Google"
         />
-
-        <PasswordInput
-          label="Contrasena"
-          name="password"
-          value={form.password}
-          disabled={isSubmitting}
-          error={showError("password")}
-          onBlur={() => setTouched((value) => ({ ...value, password: true }))}
-          onChange={(event) => setValue("password", event.target.value)}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
-            label="Nombres"
-            name="firstName"
-            value={form.firstName}
-            disabled={isSubmitting}
-            error={showError("firstName")}
-            onBlur={() => setTouched((value) => ({ ...value, firstName: true }))}
-            onChange={(event) => setValue("firstName", event.target.value)}
-          />
-          <TextInput
-            label="Apellidos"
-            name="lastName"
-            value={form.lastName}
-            disabled={isSubmitting}
-            error={showError("lastName")}
-            onBlur={() => setTouched((value) => ({ ...value, lastName: true }))}
-            onChange={(event) => setValue("lastName", event.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-[0.8fr_1.2fr]">
-          <SelectInput
-            label="Tipo de documento"
-            name="documentType"
-            value={form.documentType}
-            disabled={isSubmitting}
-            options={documentTypes}
-            error={showError("documentType")}
-            onBlur={() => setTouched((value) => ({ ...value, documentType: true }))}
-            onChange={(event) => setValue("documentType", event.target.value)}
-          />
-          <TextInput
-            label="Numero de documento"
-            name="documentNumber"
-            value={form.documentNumber}
-            disabled={isSubmitting}
-            helpText="Usaremos este dato para asociar tus expedientes correctamente."
-            error={showError("documentNumber")}
-            onBlur={() => setTouched((value) => ({ ...value, documentNumber: true }))}
-            onChange={(event) => setValue("documentNumber", event.target.value)}
-          />
-        </div>
-
-        <TextInput
-          label="Celular"
-          name="phone"
-          type="tel"
-          value={form.phone}
-          disabled={isSubmitting}
-          helpText="Opcional. Formato recomendado: +57 300 111 2233."
-          onChange={(event) => setValue("phone", event.target.value)}
-        />
-
-        <LoadingButton type="submit" isLoading={isSubmitting}>
-          Crear cuenta
-        </LoadingButton>
-
-        <div className="grid gap-3 border-t border-labora-ui pt-5">
-          <GoogleLoginButton
-            redirectTo={buildRegisterOtpPath()}
-            label="Registrarme con Google"
-          />
-        </div>
 
         <p className="text-center text-sm text-labora-gray">
           Ya tienes cuenta?{" "}
           <Link
-            href={withEmailQuery("/auth/login", form.email)}
+            href="/login"
             className="font-semibold text-labora-deep underline"
           >
             Inicia sesion
           </Link>
         </p>
-      </form>
+      </div>
     );
   }
 
@@ -494,7 +321,7 @@ export function RegisterForm() {
           Para completar tus datos primero debes conectar tu cuenta de Google.
         </InlineAlert>
         <GoogleLoginButton
-          redirectTo={buildRegisterOtpPath()}
+          redirectTo="/app/dashboard"
           label="Continuar con Google"
         />
         <Link href="/login" className="text-center text-sm font-semibold text-labora-deep underline">
